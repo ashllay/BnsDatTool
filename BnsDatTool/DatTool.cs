@@ -3,19 +3,36 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
+using BnsDatTool.lib;
 
 namespace BnsDatTool
 {
     public partial class BnsDatTool : Form
     {
+
         OpenFileDialog OfileDat = new OpenFileDialog();
         FolderBrowserDialog OfolderDat = new FolderBrowserDialog();
+
+        OpenFileDialog OfileBin = new OpenFileDialog();
+        FolderBrowserDialog OfolderBin = new FolderBrowserDialog();
+        OpenFileDialog OfileTranslate = new OpenFileDialog();
+
         private string BackPath = "backup\\";
         private string RepackPath;
         private string OutPath;
         private string DatfileName;
         private string FulldatPath;
-        //TextWriter _writer = null;
+
+        private string OutPathBin;
+        private string BinfileName;
+        private string FullBinPath;
+
+        private string OutPathBinTranslate;
+        private string BinfileNameTranslate;
+        private string FullBinPathTranslate;
+        private string FileTranslate;
+
+        TextWriter _writer = null;
 
         public BackgroundWorker ebnsdat;
         public BackgroundWorker cbnsdat;
@@ -29,8 +46,8 @@ namespace BnsDatTool
 
         private void BnsDatTool_Load(object sender, EventArgs e)
         {
-            // _writer = new StreamWriter(richOut);
-            // Console.SetOut(_writer);
+            _writer = new StrWriter(richOut);
+            Console.SetOut(_writer);
         }
 
         private void bntSearchDat_Click(object sender, EventArgs e)
@@ -185,6 +202,124 @@ namespace BnsDatTool
                 Compiler(OutPath);
             else
                 MessageBox.Show("Select Folder to repack.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        //bin
+        private void RunWithWorker(string caption, DoWorkEventHandler doWork)
+        {
+            //ProgressBarForm progress = new ProgressBarForm();
+            try
+            {
+                //pTimer.Start();
+                //progress.Text = caption;
+                CheckForIllegalCrossThreadCalls = false;
+                BackgroundWorker backgroundWorker = new BackgroundWorker();
+                backgroundWorker.WorkerReportsProgress = true;
+                backgroundWorker.DoWork += doWork;
+               // backgroundWorker.ProgressChanged += ((o, args) => progressBar.Value = args.ProgressPercentage);
+               // backgroundWorker.RunWorkerCompleted += ((o, args) => pTimer.Stop());
+                backgroundWorker.RunWorkerAsync();
+                //int num = (int)progress.ShowDialog();
+            }
+            finally
+            {
+                //pTimer.Stop();
+                //  if (progress != null)
+                //      progress.Dispose();
+            }
+        }
+
+        private void btnSeaarchBin_Click(object sender, EventArgs e)
+        {
+            if (OfileBin.ShowDialog() != DialogResult.OK)
+                return;
+
+            txbBinFile.Text = OfileBin.FileName;
+            FullBinPath = OfileBin.FileName;
+
+            if (cboxGetBinFolder.Checked == true)
+            {
+                BinfileName = OfileBin.SafeFileName;
+                OutPathBin = FullBinPath + ".files"; //get full file path and add .files
+                txbBinFolder.Text = OutPathBin;
+            }
+            // richOut.AppendText(FulldatPath);
+        }
+
+        private void btnOutBin_Click(object sender, EventArgs e)
+        {
+            if (OfolderBin.ShowDialog() != DialogResult.OK)
+                return;
+            txbBinFolder.Text = OfolderBin.SelectedPath;
+            OutPathBin = OfolderBin.SelectedPath;
+        }
+
+        private void btnDump_Click(object sender, EventArgs e)
+        {
+            RunWithWorker(btnDump.Text, ((o, args) =>
+            {
+                BDat bdat = new BDat();
+                bdat.Dump(FullBinPath, OutPathBin, BXML_TYPE.BXML_PLAIN, is64Bin.Checked);
+            }));
+        }
+
+        //translation
+        private void btnSearchBinTranslate_Click(object sender, EventArgs e)
+        {
+            if (OfileBin.ShowDialog() != DialogResult.OK)
+                return;
+
+            txbBinTranslate.Text = OfileBin.FileName;
+            FullBinPathTranslate = OfileBin.FileName;
+
+            if (cboxGetBinFolderTranslate.Checked == true)
+            {
+                BinfileNameTranslate = OfileBin.SafeFileName;
+                OutPathBinTranslate = FullBinPathTranslate + ".files"; //get full file path and add .files
+                txbExportTranslate.Text = OutPathBinTranslate;
+            }
+        }
+
+        private void btnSearchExportTranslate_Click(object sender, EventArgs e)
+        {
+            if (OfolderBin.ShowDialog() != DialogResult.OK)
+                return;
+            txbExportTranslate.Text = OfolderBin.SelectedPath;
+            OutPathBin = OfolderBin.SelectedPath;
+        }
+
+        private void btnSearchTranslateFile_Click(object sender, EventArgs e)
+        {
+            if (OfileTranslate.ShowDialog() != DialogResult.OK)
+                return;
+
+            txbImportTranslate.Text = OfileTranslate.FileName;
+            FileTranslate = OfileTranslate.FileName;
+        }
+
+        private void btnExportTranslate_Click(object sender, EventArgs e)
+        {
+            Directory.CreateDirectory(OutPathBinTranslate);
+            RunWithWorker(btnExportTranslate.Text, ((o, args) =>
+            {
+                BDat bdat = new BDat();
+                bdat.ExportTranslate(FullBinPathTranslate, OutPathBinTranslate + @"\translation.xml", BXML_TYPE.BXML_PLAIN, cboxIs64Translate.Checked);
+            }));
+        }
+
+        private void btnMergeTranslate_Click(object sender, EventArgs e)
+        {
+            //string translatedpath = AppDomain.CurrentDomain.BaseDirectory + @"datas\" + GetXmlRegion();
+            RunWithWorker(btnMergeTranslate.Text, ((o, args) =>
+            {
+                TranslateReader translateControl_Na = new TranslateReader();
+                translateControl_Na.Load(FileTranslate);
+
+                TranslateReader translateControl_Org = new TranslateReader();
+                //translateControl_Org.Load(translatedpath, true);//                
+
+               // translateControl_Org.MergeTranslation(translateControl_Na, translatedpath);
+            }));            
         }
     }
 }

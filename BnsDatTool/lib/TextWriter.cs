@@ -3,13 +3,14 @@ using System.Text;
 using System.IO;
 using System.Windows.Forms;
 
-namespace BnsDatTool
+
+namespace BnsDatTool.lib
 {
-    public class StreamWriter : TextWriter
+    public class StrWriter : TextWriter
     {
         RichTextBox _output = null;
 
-        public StreamWriter(RichTextBox output)
+        public StrWriter(RichTextBox output)
         {
             _output = output;
         }
@@ -18,7 +19,6 @@ namespace BnsDatTool
         {
             base.Write(value);
             _output.AppendText(value.ToString());
-
         }
         public override Encoding Encoding
         {

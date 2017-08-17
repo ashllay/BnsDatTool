@@ -10,21 +10,13 @@ using System.Xml;
 
 namespace BnsDatTool
 {
-    enum BXML_TYPE
+    public enum BXML_TYPE
     {
+        BXML_XML = 1,
         BXML_PLAIN,
         BXML_BINARY,
         BXML_UNKNOWN
     };
-
-    enum BDAT_TYPE
-    {
-        BDAT_XML = 1,
-        BDAT_PLAIN,
-        BDAT_BINARY,
-        BDAT_UNKNOWN
-    };
-
 
     class BPKG_FTE
     {
@@ -59,6 +51,24 @@ namespace BnsDatTool
 
         public byte[] XOR_KEY = new byte[16] { 164, 159, 216, 179, 246, 142, 57, 194, 45, 224, 97, 117, 92, 75, 26, 7 };
 
+        public string BytesToHex(byte[] bytes)
+        {
+            char[] c = new char[bytes.Length * 2];
+
+            byte b;
+
+            for (int bx = 0, cx = 0; bx < bytes.Length; ++bx, ++cx)
+            {
+                b = ((byte)(bytes[bx] >> 4));
+                c[cx] = (char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
+
+                b = ((byte)(bytes[bx] & 0x0F));
+                c[++cx] = (char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
+            }
+
+            return new string(c);
+        }
+
         private byte[] Decrypt(byte[] buffer, int size)
         {
             // AES requires buffer to consist of blocks with 16 bytes (each)
@@ -83,11 +93,11 @@ namespace BnsDatTool
             return output;
         }
 
-        private byte[] Deflate(byte[] buffer, int sizeCompressed, int sizeDecompressed)
+        public byte[] Deflate(byte[] buffer, int sizeCompressed, int sizeDecompressed)
         {
             byte[] tmp = Ionic.Zlib.ZlibStream.UncompressBuffer(buffer);
 
-            if (tmp.Length != sizeDecompressed)
+            //if (tmp.Length != sizeDecompressed)
             {
                 byte[] tmp2 = new byte[sizeDecompressed];
 
@@ -101,7 +111,7 @@ namespace BnsDatTool
             return tmp;
         }
 
-        private byte[] Unpack(byte[] buffer, int sizeStored, int sizeSheared, int sizeUnpacked, bool isEncrypted, bool isCompressed)
+        public byte[] Unpack(byte[] buffer, int sizeStored, int sizeSheared, int sizeUnpacked, bool isEncrypted, bool isCompressed)
         {
             byte[] output = buffer;
 
@@ -132,7 +142,7 @@ namespace BnsDatTool
             return output;
         }
 
-        private byte[] Inflate(byte[] buffer, int sizeDecompressed, out int sizeCompressed, int compressionLevel)
+        public byte[] Inflate(byte[] buffer, int sizeDecompressed, out int sizeCompressed, int compressionLevel)
         {
 
             MemoryStream output = new MemoryStream();

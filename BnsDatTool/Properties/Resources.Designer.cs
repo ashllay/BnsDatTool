@@ -59,5 +59,21 @@ namespace BnsDatTool.Properties {
                 resourceCulture = value;
             }
         }
+
+        internal static string AutoIdSearchNotSupported
+        {
+            get
+            {
+                return ResourceManager.GetString("AutoIdSearchNotSupported", resourceCulture);
+            }
+        }
+
+        internal static string translate
+        {
+            get
+            {
+                return ResourceManager.GetString("translate", resourceCulture);
+            }
+        }
     }
 }
