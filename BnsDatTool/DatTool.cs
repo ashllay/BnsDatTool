@@ -207,25 +207,23 @@ namespace BnsDatTool
         //bin
         private void RunWithWorker(string caption, DoWorkEventHandler doWork)
         {
-            //ProgressBarForm progress = new ProgressBarForm();
+            CheckForIllegalCrossThreadCalls = false;
+            ProgressBarForm progress = new ProgressBarForm();
             try
             {
-                //pTimer.Start();
-                //progress.Text = caption;
-                CheckForIllegalCrossThreadCalls = false;
+                progress.Text = caption;
                 BackgroundWorker backgroundWorker = new BackgroundWorker();
                 backgroundWorker.WorkerReportsProgress = true;
                 backgroundWorker.DoWork += doWork;
-               // backgroundWorker.ProgressChanged += ((o, args) => progressBar.Value = args.ProgressPercentage);
-               // backgroundWorker.RunWorkerCompleted += ((o, args) => pTimer.Stop());
+                backgroundWorker.ProgressChanged += ((o, args) => progress.progressBar.Value = args.ProgressPercentage);
+                backgroundWorker.RunWorkerCompleted += ((o, args) => progress.Close());
                 backgroundWorker.RunWorkerAsync();
-                //int num = (int)progress.ShowDialog();
+                int num = (int)progress.ShowDialog();
             }
             finally
             {
-                //pTimer.Stop();
-                //  if (progress != null)
-                //      progress.Dispose();
+                if (progress != null)
+                    progress.Dispose();
             }
         }
 
@@ -264,6 +262,22 @@ namespace BnsDatTool
         }
 
         //translation
+        private void btn_SearchtLocal_Click(object sender, EventArgs e)
+        {
+            if (OfileDat.ShowDialog() != DialogResult.OK)
+                return;
+
+            txb_tlocal.Text = OfileDat.FileName;
+            if (cboxGetBinFolderTranslate.Checked == true)
+            {
+              // string datpath = OfileDat.FileName;
+              // string binpath = datpath + ".";
+              //  OutPath = FulldatPath + ".files"; //get full file path and add .files
+               // RepackPath = FulldatPath.Replace(DatfileName, "");//get working dir
+              //  txbBinTranslate.Text = OutPath;
+            }
+        }
+
         private void btnSearchBinTranslate_Click(object sender, EventArgs e)
         {
             if (OfileBin.ShowDialog() != DialogResult.OK)
@@ -309,17 +323,52 @@ namespace BnsDatTool
 
         private void btnMergeTranslate_Click(object sender, EventArgs e)
         {
-            //string translatedpath = AppDomain.CurrentDomain.BaseDirectory + @"datas\" + GetXmlRegion();
+            string translatedpath = FullBinPathTranslate + OutPathBinTranslate + @"\translation.xml";
             RunWithWorker(btnMergeTranslate.Text, ((o, args) =>
             {
                 TranslateReader translateControl_Na = new TranslateReader();
                 translateControl_Na.Load(FileTranslate);
 
                 TranslateReader translateControl_Org = new TranslateReader();
-                //translateControl_Org.Load(translatedpath, true);//                
+                translateControl_Org.Load(translatedpath, true);//                
 
-               // translateControl_Org.MergeTranslation(translateControl_Na, translatedpath);
+                translateControl_Org.MergeTranslation(translateControl_Na, translatedpath);
             }));            
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string local = FullBinPathTranslate + OutPathBinTranslate;
+            string xml = FullBinPathTranslate + OutPathBinTranslate + @"\translation.xml";
+
+            RunWithWorker(btn_Translate.Text, ((o, args) =>
+            {
+                BDat bdat = new BDat();
+                bdat.Translate(local, xml, cboxIs64Translate.Checked);
+            }));
+
+        }
+
+        private void btn_pack_Click(object sender, EventArgs e)
+        {
+            string usedfilepath = FullBinPathTranslate + OutPathBinTranslate;
+
+            RunWithWorker(btn_pack.Text, ((o, args) =>
+            {
+                //BackgroundWorker backgroundWorker = o as BackgroundWorker;
+
+                // Copy one file to a location where there is a file.
+                File.Copy(usedfilepath + (cboxIs64Translate.Checked ? "localfile64_new.bin" : "localfile_new.bin"), usedfilepath + (cboxIs64Translate.Checked ? @"local64.dat.files\localfile.bin" : @"local.dat.files\localfile64.bin"), true); // overwrite = true
+
+                BNSDat m_bnsDat = new BNSDat();
+
+                new BNSDat().Compress(usedfilepath + (cboxIs64Translate.Checked ? "local64.dat.files" : "local.dat.files"), (number, of) =>
+                {
+                    richOut.Text = "Compressing Files: " + number + "/" + of;
+                }, cboxIs64Translate.Checked, 9);
+            }));
+        }
+
+
     }
 }

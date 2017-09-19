@@ -509,19 +509,30 @@ namespace BnsDatTool
                 Nodes.Load(iStream);
 
                 // get original path from first comment node
-                XmlNode node = Nodes.DocumentElement.ChildNodes.OfType<XmlComment>().First();
-                if (node != null && node.NodeType == XmlNodeType.Comment)
+                //fixed 18-08 
+                XmlNode node = null;
+                try
                 {
-                    string Text = node.InnerText;
-                    OriginalPathLength = Text.Length;
-                    OriginalPath = Encoding.Unicode.GetBytes(Text);
-                    Xor(OriginalPath, 2 * OriginalPathLength);
-                    if (Nodes.PreserveWhitespace && node.NextSibling.NodeType == XmlNodeType.Whitespace)
-                        Nodes.DocumentElement.RemoveChild(node.NextSibling);
+                    node = Nodes.DocumentElement.ChildNodes.OfType<XmlComment>().First();
                 }
-                else
+                catch
                 {
-                    OriginalPath = new byte[2 * OriginalPathLength];
+                }
+                finally
+                {
+                    if (node != null && node.NodeType == XmlNodeType.Comment)
+                    {
+                        string Text = node.InnerText;
+                        OriginalPathLength = Text.Length;
+                        OriginalPath = Encoding.Unicode.GetBytes(Text);
+                        Xor(OriginalPath, 2 * OriginalPathLength);
+                        if (Nodes.PreserveWhitespace && node.NextSibling.NodeType == XmlNodeType.Whitespace)
+                            Nodes.DocumentElement.RemoveChild(node.NextSibling);
+                    }
+                    else
+                    {
+                        OriginalPath = new byte[2 * OriginalPathLength];
+                    }
                 }
             }
 
