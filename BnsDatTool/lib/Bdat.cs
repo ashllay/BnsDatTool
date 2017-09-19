@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Net;
 using System.Web;
+using static BnsDatTool.lib.TranslateFileDal;
 
 namespace BnsDatTool.lib
 {
@@ -1210,50 +1211,50 @@ namespace BnsDatTool.lib
         }
         public void MergeTranslation(TranslateReader translated, string savePath)
         {
-//            XElement texts = new XElement("table");
+            XElement texts = new XElement("table");
 
-//            XmlNodeList xNodeList = _xDoc.SelectNodes("table/child::node()");
-//            foreach (XmlNode xNode in xNodeList)
-//            {
-//                string alias = xNode.Attributes[NodeNames.Alias].Value;
-//                string autoId = xNode.Attributes[NodeNames.AutoId].Value;
-//                string priority = xNode.Attributes[NodeNames.Priority].Value;
-//                string replacement = xNode.LastChild.InnerText;
+            XmlNodeList xNodeList = _xDoc.SelectNodes("table/child::node()");
+            foreach (XmlNode xNode in xNodeList)
+            {
+                string alias = xNode.Attributes[NodeNames.Alias].Value;
+                string autoId = xNode.Attributes[NodeNames.AutoId].Value;
+                string priority = xNode.Attributes[NodeNames.Priority].Value;
+                string replacement = xNode.LastChild.InnerText;
 
-//                if (!string.IsNullOrEmpty(alias) && translated.Trans_alias.ContainsKey(alias) && CanTran(alias))
-//                {
-//                    replacement = translated.Trans_alias[alias];
-//                }
-//                else
-//                {
-//#if DEBUG
-//                    //Console.WriteLine("MergeTranslation: {0}", alias);
-//#endif
-//                }
-//                XElement temp_xml = new XElement(NodeNames.Root,
-//                   new XAttribute(NodeNames.AutoId, autoId),
-//                   new XAttribute(NodeNames.Alias, alias),
-//                   new XAttribute(NodeNames.Priority, priority));
+                if (!string.IsNullOrEmpty(alias) && translated.Trans_alias.ContainsKey(alias) && CanTran(alias))
+                {
+                    replacement = translated.Trans_alias[alias];
+                }
+                else
+                {
+#if DEBUG
+                    //Console.WriteLine("MergeTranslation: {0}", alias);
+#endif
+                }
+                XElement temp_xml = new XElement(NodeNames.Root,
+                   new XAttribute(NodeNames.AutoId, autoId),
+                   new XAttribute(NodeNames.Alias, alias),
+                   new XAttribute(NodeNames.Priority, priority));
 
-//                temp_xml.Add(new XElement(NodeNames.Original, new XCData(xNode.FirstChild.InnerText)),
-//                             new XElement(NodeNames.Replacement, new XCData(replacement)));
+                temp_xml.Add(new XElement(NodeNames.Original, new XCData(xNode.FirstChild.InnerText)),
+                             new XElement(NodeNames.Replacement, new XCData(replacement)));
 
-//                texts.Add(temp_xml);
-//            }
-//            //Doc.Save(savePath);
-//            XmlWriterSettings settings = new XmlWriterSettings
-//            {
-//                OmitXmlDeclaration = true,
-//                Encoding = Encoding.UTF8,
-//                Indent = true
-//            };
-//#if DEBUG
-//            Console.WriteLine("savePath: {0}", savePath);
-//#endif
-//            using (XmlWriter xw = XmlWriter.Create(savePath, settings))
-//            {
-//                texts.Save(xw);
-//            }
+                texts.Add(temp_xml);
+            }
+            //Doc.Save(savePath);
+            XmlWriterSettings settings = new XmlWriterSettings
+            {
+                OmitXmlDeclaration = true,
+                Encoding = Encoding.UTF8,
+                Indent = true
+            };
+#if DEBUG
+            Console.WriteLine("savePath: {0}", savePath);
+#endif
+            using (XmlWriter xw = XmlWriter.Create(savePath, settings))
+            {
+                texts.Save(xw);
+            }
         }
     }
 }
