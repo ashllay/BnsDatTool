@@ -281,6 +281,7 @@ namespace BnsDatTool
             fs.Close();
             br = null;
             fs = null;
+            Console.Write("\rDone!!");
         }
 
         public void Compress(string Folder, Action<int, int> processedEvent, bool is64 = false, int compression = 9)
@@ -452,15 +453,7 @@ namespace BnsDatTool
             output.Close();
             bw = null;
             output = null;
-
-            // stopWatch.Stop();
-            // Get the elapsed time as a TimeSpan value.
-            //TimeSpan ts = stopWatch.Elapsed;
-
-            // Format and display the TimeSpan value.
-            //string elapsedTime = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds,ts.Milliseconds / 10);
-            //Console.WriteLine("RunTime " + elapsedTime);
-            //Console.WriteLine("\r\nDone!"/* in "+ elapsedTime*/);
+            Console.WriteLine("\r\nDone!");
         }
 
         private void Convert(Stream iStream, BXML_TYPE iType, Stream oStream, BXML_TYPE oType)

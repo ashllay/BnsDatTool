@@ -51,7 +51,7 @@ namespace BnsDatTool
             if (OfileDat.ShowDialog() != DialogResult.OK)
                 return;
             // Check if 64bit or 32bit
-            
+
 
             txbDatFile.Text = OfileDat.FileName;
             if (cB_output.Checked == true)
@@ -210,22 +210,22 @@ namespace BnsDatTool
         private void RunWithWorker(string caption, DoWorkEventHandler doWork)
         {
             CheckForIllegalCrossThreadCalls = false;
-            ProgressBarForm progress = new ProgressBarForm();
+            //ProgressBarForm progress = new ProgressBarForm();
             try
             {
-                progress.Text = caption;
+                //progress.Text = caption;
                 BackgroundWorker backgroundWorker = new BackgroundWorker();
                 backgroundWorker.WorkerReportsProgress = true;
                 backgroundWorker.DoWork += doWork;
-                backgroundWorker.ProgressChanged += ((o, args) => progress.progressBar.Value = args.ProgressPercentage);
-                backgroundWorker.RunWorkerCompleted += ((o, args) => progress.Close());
+                //backgroundWorker.ProgressChanged += ((o, args) => progress.progressBar.Value = args.ProgressPercentage);
+                //backgroundWorker.RunWorkerCompleted += ((o, args) => progress.Close());
                 backgroundWorker.RunWorkerAsync();
-                int num = (int)progress.ShowDialog();
+                //int num = (int)progress.ShowDialog();
             }
             finally
             {
-                if (progress != null)
-                    progress.Dispose();
+                //  if (progress != null)
+                //     progress.Dispose();
             }
         }
 
@@ -233,8 +233,7 @@ namespace BnsDatTool
         {
             if (OfileBin.ShowDialog() != DialogResult.OK)
                 return;
-            
-            
+
             txbBinFile.Text = OfileBin.FileName;
             FullBinPath = OfileBin.FileName;
 
@@ -261,11 +260,18 @@ namespace BnsDatTool
 
         private void btnDump_Click(object sender, EventArgs e)
         {
-            RunWithWorker(btnDump.Text, ((o, args) =>
+            if (!File.Exists(FullBinPath))
             {
-                BDat bdat = new BDat();
-                bdat.Dump(FullBinPath, OutPathBin, BXML_TYPE.BXML_PLAIN, binIs64);
-            }));
+                MessageBox.Show("Select .bin file to dump.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                RunWithWorker(btnDump.Text, ((o, args) =>
+                {
+                    BDat bdat = new BDat();
+                    bdat.Dump(FullBinPath, OutPathBin, BXML_TYPE.BXML_PLAIN, binIs64);
+                }));
+            }
         }
 
         //translation
@@ -295,18 +301,24 @@ namespace BnsDatTool
             OutPathBinTranslate = DatPathTranslate + @"\Translation\";
 
             txbExportTranslate.Text = OutPathBinTranslate;
-            richOut.AppendText(DatPathTranslate);
         }
 
         private void btn_textract_Click(object sender, EventArgs e)
         {
-            RunWithWorker(btn_textract.Text, ((o, args) =>
+            if (File.Exists(DatFileTranslate))
             {
-                new BNSDat().Extract(DatFileTranslate, (number, of) =>
+                RunWithWorker(btn_textract.Text, ((o, args) =>
                 {
-                    richOut.Text = "Extracting Files: " + number + "/" + of;
-                }, tIs64);
-            }));
+                    new BNSDat().Extract(DatFileTranslate, (number, of) =>
+                    {
+                        richOut.Text = "Extracting Files: " + number + "/" + of;
+                    }, tIs64);
+                }));
+            }
+            else
+            {
+                MessageBox.Show("Select local file to extract.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void btnSearchExportTranslate_Click(object sender, EventArgs e)
@@ -319,17 +331,24 @@ namespace BnsDatTool
 
         private void btnExportTranslate_Click(object sender, EventArgs e)
         {
-            Directory.CreateDirectory(OutPathBinTranslate);
-
             string saveFolder = OutPathBinTranslate + @"translation.xml";//original translation xml
             string usedfilepath = FullBinPathTranslate;//original bin file
 
-            RunWithWorker(btnExportTranslate.Text, ((o, args) =>
+            if (!File.Exists(usedfilepath))
             {
-                //BackgroundWorker backgroundWorker = o as BackgroundWorker;
-                BDat bdat = new BDat();
-                bdat.ExportTranslate(usedfilepath, saveFolder, BXML_TYPE.BXML_PLAIN, tIs64);
-            }));
+                MessageBox.Show("bin file not found make sure you have unpacked local file and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                Directory.CreateDirectory(OutPathBinTranslate);
+                // Console.WriteLine("\rMerging translation...");
+                RunWithWorker(btnExportTranslate.Text, ((o, args) =>
+                {
+                    //BackgroundWorker backgroundWorker = o as BackgroundWorker;
+                    BDat bdat = new BDat();
+                    bdat.ExportTranslate(usedfilepath, saveFolder, BXML_TYPE.BXML_PLAIN, tIs64);
+                }));
+            }
         }
 
         private void btnSearchTranslateFile_Click(object sender, EventArgs e)
@@ -344,16 +363,29 @@ namespace BnsDatTool
         private void btnMergeTranslate_Click(object sender, EventArgs e)
         {
             string translatedpath = OutPathBinTranslate + @"translation.xml";//exported xml
-            RunWithWorker(btnMergeTranslate.Text, ((o, args) =>
+
+            if (!File.Exists(translatedpath))
             {
-                TranslateReader translateControl_Na = new TranslateReader();
-                translateControl_Na.Load(FileTranslate);//translated xml
+                MessageBox.Show("Original translation.xml file not found make sure you have unpacked local file and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else if (!File.Exists(FileTranslate))
+            {
+                MessageBox.Show("Merge translation.xml file not found make sure you have selected it and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                Console.WriteLine("Merging translation...");
+                RunWithWorker(btnMergeTranslate.Text, ((o, args) =>
+                {
+                    TranslateReader translateControl_Na = new TranslateReader();
+                    translateControl_Na.Load(FileTranslate);//translated xml
 
-                TranslateReader translateControl_Org = new TranslateReader();
-                translateControl_Org.Load(translatedpath, true);//                
+                    TranslateReader translateControl_Org = new TranslateReader();
+                    translateControl_Org.Load(translatedpath, true);//                
 
-                translateControl_Org.MergeTranslation(translateControl_Na, translatedpath);
-            }));
+                    translateControl_Org.MergeTranslation(translateControl_Na, translatedpath);
+                }));
+            }
         }
 
         private void btn_Translate_Click(object sender, EventArgs e)
@@ -361,32 +393,48 @@ namespace BnsDatTool
             string local = DatPathTranslate + @"\";//extracetd local folder
             string xml = OutPathBinTranslate + @"translation.xml";//translated xml
 
-            RunWithWorker(btn_Translate.Text, ((o, args) =>
+            if (!File.Exists(xml))
             {
-                BDat bdat = new BDat();
-                bdat.Translate(local, xml, tIs64);
-            }));
+                MessageBox.Show("Original translation.xml file not found make sure you have unpacked local file and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else if (!Directory.Exists(local))
+            {
+                MessageBox.Show("Unpacked local files not found make sure you have unpacked it and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                RunWithWorker(btn_Translate.Text, ((o, args) =>
+                {
+                    BDat bdat = new BDat();
+                    bdat.Translate(local, xml, tIs64);
+                }));
+            }
         }
 
         private void btn_pack_Click(object sender, EventArgs e)
         {
             string usedfilepath = DatPathTranslate + @"\";
 
-            RunWithWorker(btn_pack.Text, ((o, args) =>
+            if (!Directory.Exists(usedfilepath))
+                MessageBox.Show("Repack folder not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            if (!File.Exists(usedfilepath + (tIs64 ? "localfile64_new.bin" : "localfile_new.bin")))
+                MessageBox.Show("_new.bin file not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            else
             {
-                //BackgroundWorker backgroundWorker = o as BackgroundWorker;
-
-                // Copy one file to a location where there is a file.
-                File.Copy(usedfilepath + (tIs64 ? "localfile64_new.bin" : "localfile_new.bin"), 
-                    usedfilepath + (tIs64 ? @"local64.dat.files\localfile64.bin" : @"local.dat.files\localfile.bin"), true); // overwrite = true
-
-                BNSDat m_bnsDat = new BNSDat();
-
-                new BNSDat().Compress(usedfilepath + (tIs64 ? "local64.dat.files" : "local.dat.files"), (number, of) =>
+                RunWithWorker(btn_pack.Text, ((o, args) =>
                 {
-                    richOut.Text = "Compressing Files: " + number + "/" + of;
-                }, tIs64, 9);
-            }));
+                    // Copy one file to a location where there is a file.
+
+                    File.Copy(usedfilepath + (tIs64 ? "localfile64_new.bin" : "localfile_new.bin"),
+                            usedfilepath + (tIs64 ? @"local64.dat.files\localfile64.bin" : @"local.dat.files\localfile.bin"), true); // overwrite = true
+
+                    BNSDat m_bnsDat = new BNSDat();
+                    new BNSDat().Compress(usedfilepath + (tIs64 ? "local64.dat.files" : "local.dat.files"), (number, of) =>
+                    {
+                        richOut.Text = "Compressing Files: " + number + "/" + of;
+                    }, tIs64, 9);
+                }));
+            }
         }
     }
 }

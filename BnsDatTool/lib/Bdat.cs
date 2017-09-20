@@ -48,12 +48,11 @@ namespace BnsDatTool.lib
         }
         public void ExportTranslate(string FileName, string saveFolder, BXML_TYPE format, bool is64)
         {
+            Console.Write("\rExporting Translation XML...");
             FileStream fs = new FileStream(FileName, FileMode.Open);
             BinaryReader br = new BinaryReader(fs);
 
             Load(br, format, is64);
-
-            
 
             using (StreamWriter outfile = new StreamWriter(saveFolder))
             {
@@ -124,6 +123,7 @@ namespace BnsDatTool.lib
         }
         public void Translate(string dir, string lang, bool is64)
         {
+            Console.Write("Translating: Content...\n");
             string bin = is64 ? @"local64.dat.files\localfile64.bin" : @"local.dat.files\localfile.bin";
             FileStream fs = new FileStream(dir + bin, FileMode.Open);
             BinaryReader br = new BinaryReader(fs);
@@ -139,6 +139,7 @@ namespace BnsDatTool.lib
 
             Save(bw, BXML_TYPE.BXML_BINARY, is64);
             bw.Close();
+            Console.WriteLine("\rDone!!");
         }
 
         public void TranslateGeneral(TranslateReader translator)
@@ -159,9 +160,10 @@ namespace BnsDatTool.lib
                     for (int s = 0; s < barchive.SubArchiveCount; s++)
                     {
                         bsubarchive = barchive.SubArchives[s];
-
+                       // Console.Write("\rTranslateGeneral SubArchive: {0}/{1}", (s + 1), barchive.SubArchiveCount);
                         for (int f = 0; f < bsubarchive.FieldLookupCount; f++)
                         {
+                            //Console.Write("\rTranslateGeneral FieldLookup: {0}/{1}", (f + 1), bsubarchive.FieldLookupCount);
                             BDAT_FIELDTABLE field = bsubarchive.Fields[f];
                             BDAT_LOOKUPTABLE blookup = bsubarchive.Lookups[f];
 
@@ -229,7 +231,8 @@ namespace BnsDatTool.lib
                     }
                     barchive.SubArchiveCount = subNews.Count;
                     barchive.SubArchives = subNews.ToArray();
-                    Console.WriteLine("IF A==B that mean have something wrong! Check source code and fix it.");
+                    // Console.WriteLine("IF A==B that mean have something wrong! Check source code and fix it.");
+                    //Console.WriteLine("\rDone!!");
                 }
                 else
                 {
@@ -252,7 +255,6 @@ namespace BnsDatTool.lib
                     blookup.Data = LookupWorldsToBytes(words);
                     blookup.Size = blookup.Data.Length;
                 }
-
             }
         }
 
@@ -564,7 +566,6 @@ namespace BnsDatTool.lib
                         _indexCommands = l;
                 }
             }
-
         }
 
         public string[] LookupSplitToWords(byte[] data, int size)
@@ -1255,6 +1256,7 @@ namespace BnsDatTool.lib
             {
                 texts.Save(xw);
             }
+            Console.WriteLine("\rDone!!");
         }
     }
 }
