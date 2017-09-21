@@ -29,8 +29,7 @@ namespace BnsDatTool
 
         TextWriter _writer = null;
 
-        public BackgroundWorker ebnsdat;
-        public BackgroundWorker cbnsdat;
+        public BackgroundWorker multiworker;
 
         public bool DatIs64 = false;
 
@@ -45,13 +44,28 @@ namespace BnsDatTool
             Console.SetOut(_writer);
         }
 
+        private void RunWithWorker(DoWorkEventHandler doWork)
+        {
+            CheckForIllegalCrossThreadCalls = false;
+            try
+            {
+                multiworker = new BackgroundWorker();
+                multiworker.WorkerReportsProgress = true;
+                multiworker.DoWork += doWork;
+                multiworker.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
         private void bntSearchDat_Click(object sender, EventArgs e)
         {
 
             if (OfileDat.ShowDialog() != DialogResult.OK)
                 return;
             // Check if 64bit or 32bit
-
 
             txbDatFile.Text = OfileDat.FileName;
             if (cB_output.Checked == true)
@@ -88,35 +102,23 @@ namespace BnsDatTool
         {
             if (datFile == null)
                 return;
-            DatIs64 = true;
-            cbnsdat = new BackgroundWorker();
-            cbnsdat.WorkerSupportsCancellation = true;
-            cbnsdat.WorkerReportsProgress = true;
-            cbnsdat.DoWork += datextract_DoWork;
-            cbnsdat.RunWorkerAsync();
-        }
 
-        private void datextract_DoWork(object sender, DoWorkEventArgs e)
-        {
-            CheckForIllegalCrossThreadCalls = false;
-
-            new BNSDat().Extract(FulldatPath, (number, of) =>
+            RunWithWorker(((o, args) =>
             {
-                richOut.Text = "Extracting Files: " + number + "/" + of;
-            }, DatIs64);
-
-            richOut.AppendText("\r\nDone!");
-
-            GC.Collect();
+                new BNSDat().Extract(FulldatPath, (number, of) =>
+                {
+                    richOut.Text = "Extracting Files: " + number + "/" + of;
+                }, DatIs64);
+            }));
         }
 
         private void BntStart_Click(object sender, EventArgs e)
         {
-            richOut.Clear();
-            if (cbnsdat != null && cbnsdat.IsBusy)
-            {
-                cbnsdat.CancelAsync();
-            }
+           // richOut.Clear();
+
+            if (multiworker != null && multiworker.IsBusy)            
+                multiworker.CancelAsync();
+
             try
             {
                 if (File.Exists(FulldatPath))
@@ -138,35 +140,30 @@ namespace BnsDatTool
         {
             if (repackPath == null)
                 return;
-            DatIs64 = true;
-            ebnsdat = new BackgroundWorker();
-            ebnsdat.WorkerSupportsCancellation = true;
-            ebnsdat.WorkerReportsProgress = true;
-            ebnsdat.DoWork += new DoWorkEventHandler(datcompress_DoWork);
-            ebnsdat.RunWorkerAsync();
-        }
-
-        private void datcompress_DoWork(object sender, DoWorkEventArgs e)
-        {
-            CheckForIllegalCrossThreadCalls = false;
-
-            new BNSDat().Compress(OutPath, (number, of) =>
+            RunWithWorker(((o, args) =>
             {
-                richOut.Text = "Compressing Files: " + number + "/" + of;
-            }, DatIs64, 9);
-
-            richOut.AppendText("\r\nDone!!");
-            GC.Collect();
+                new BNSDat().Compress(OutPath, (number, of) =>
+                {
+                    richOut.Text = "Compressing Files: " + number + "/" + of;
+                }, DatIs64, 9);
+            }));
         }
+
 
         private void btnRepack_Click(object sender, EventArgs e)
         {
-            richOut.Clear();
-            if (cbnsdat != null && cbnsdat.IsBusy)
-            {
-                cbnsdat.CancelAsync();
-            }
+            //richOut.Clear();
+
+            if (multiworker != null && multiworker.IsBusy)
+                multiworker.CancelAsync();
+
             if (Cb_back.Checked)
+                BackUpManager();
+        }
+
+        private void BackUpManager()
+        {
+            RunWithWorker(((o, args) =>
             {
                 if (string.IsNullOrEmpty(DatfileName) == false)
                 {
@@ -198,36 +195,20 @@ namespace BnsDatTool
                         MessageBox.Show(".dat file not found can't create backup.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
-            }
+            }));
+            CompileManager();
+        }
+
+        void CompileManager()
+        {
             if (Directory.Exists(OutPath))
                 Compiler(OutPath);
             else
                 MessageBox.Show("Select Folder to repack.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
+
         //bin
         private bool binIs64 = false;
-
-        private void RunWithWorker(string caption, DoWorkEventHandler doWork)
-        {
-            CheckForIllegalCrossThreadCalls = false;
-            //ProgressBarForm progress = new ProgressBarForm();
-            try
-            {
-                //progress.Text = caption;
-                BackgroundWorker backgroundWorker = new BackgroundWorker();
-                backgroundWorker.WorkerReportsProgress = true;
-                backgroundWorker.DoWork += doWork;
-                //backgroundWorker.ProgressChanged += ((o, args) => progress.progressBar.Value = args.ProgressPercentage);
-                //backgroundWorker.RunWorkerCompleted += ((o, args) => progress.Close());
-                backgroundWorker.RunWorkerAsync();
-                //int num = (int)progress.ShowDialog();
-            }
-            finally
-            {
-                //  if (progress != null)
-                //     progress.Dispose();
-            }
-        }
 
         private void btnSeaarchBin_Click(object sender, EventArgs e)
         {
@@ -246,8 +227,6 @@ namespace BnsDatTool
 
             if (BinfileName.Contains("64"))
                 binIs64 = true;
-
-            // richOut.AppendText(FulldatPath);
         }
 
         private void btnOutBin_Click(object sender, EventArgs e)
@@ -266,7 +245,7 @@ namespace BnsDatTool
             }
             else
             {
-                RunWithWorker(btnDump.Text, ((o, args) =>
+                RunWithWorker(((o, args) =>
                 {
                     BDat bdat = new BDat();
                     bdat.Dump(FullBinPath, OutPathBin, BXML_TYPE.BXML_PLAIN, binIs64);
@@ -307,7 +286,7 @@ namespace BnsDatTool
         {
             if (File.Exists(DatFileTranslate))
             {
-                RunWithWorker(btn_textract.Text, ((o, args) =>
+                RunWithWorker(((o, args) =>
                 {
                     new BNSDat().Extract(DatFileTranslate, (number, of) =>
                     {
@@ -342,7 +321,7 @@ namespace BnsDatTool
             {
                 Directory.CreateDirectory(OutPathBinTranslate);
                 // Console.WriteLine("\rMerging translation...");
-                RunWithWorker(btnExportTranslate.Text, ((o, args) =>
+                RunWithWorker(((o, args) =>
                 {
                     //BackgroundWorker backgroundWorker = o as BackgroundWorker;
                     BDat bdat = new BDat();
@@ -375,7 +354,7 @@ namespace BnsDatTool
             else
             {
                 Console.WriteLine("Merging translation...");
-                RunWithWorker(btnMergeTranslate.Text, ((o, args) =>
+                RunWithWorker(((o, args) =>
                 {
                     TranslateReader translateControl_Na = new TranslateReader();
                     translateControl_Na.Load(FileTranslate);//translated xml
@@ -403,7 +382,7 @@ namespace BnsDatTool
             }
             else
             {
-                RunWithWorker(btn_Translate.Text, ((o, args) =>
+                RunWithWorker(((o, args) =>
                 {
                     BDat bdat = new BDat();
                     bdat.Translate(local, xml, tIs64);
@@ -421,7 +400,7 @@ namespace BnsDatTool
                 MessageBox.Show("_new.bin file not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             else
             {
-                RunWithWorker(btn_pack.Text, ((o, args) =>
+                RunWithWorker(((o, args) =>
                 {
                     // Copy one file to a location where there is a file.
 
