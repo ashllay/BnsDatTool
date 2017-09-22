@@ -53,6 +53,7 @@
             this.btnOutBin = new System.Windows.Forms.Button();
             this.txbBinFolder = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.btn_textract = new System.Windows.Forms.Button();
             this.txb_tlocal = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.btn_SearchtLocal = new System.Windows.Forms.Button();
@@ -64,10 +65,8 @@
             this.btnSearchTranslateFile = new System.Windows.Forms.Button();
             this.txbImportTranslate = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.btnSearchExportTranslate = new System.Windows.Forms.Button();
             this.txbExportTranslate = new System.Windows.Forms.TextBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.btn_textract = new System.Windows.Forms.Button();
+            this.cboxtbackup = new System.Windows.Forms.CheckBox();
             this.groupBox2.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -332,9 +331,8 @@
             this.tabPage3.Controls.Add(this.btnSearchTranslateFile);
             this.tabPage3.Controls.Add(this.txbImportTranslate);
             this.tabPage3.Controls.Add(this.label4);
-            this.tabPage3.Controls.Add(this.btnSearchExportTranslate);
             this.tabPage3.Controls.Add(this.txbExportTranslate);
-            this.tabPage3.Controls.Add(this.checkBox1);
+            this.tabPage3.Controls.Add(this.cboxtbackup);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
@@ -342,6 +340,16 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Translate";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // btn_textract
+            // 
+            this.btn_textract.Location = new System.Drawing.Point(378, 4);
+            this.btn_textract.Name = "btn_textract";
+            this.btn_textract.Size = new System.Drawing.Size(57, 23);
+            this.btn_textract.TabIndex = 51;
+            this.btn_textract.Text = "Extract";
+            this.btn_textract.UseVisualStyleBackColor = true;
+            this.btn_textract.Click += new System.EventHandler(this.btn_textract_Click);
             // 
             // txb_tlocal
             // 
@@ -444,44 +452,24 @@
             this.label4.TabIndex = 39;
             this.label4.Text = "Export Folder:";
             // 
-            // btnSearchExportTranslate
-            // 
-            this.btnSearchExportTranslate.Location = new System.Drawing.Point(309, 30);
-            this.btnSearchExportTranslate.Name = "btnSearchExportTranslate";
-            this.btnSearchExportTranslate.Size = new System.Drawing.Size(63, 23);
-            this.btnSearchExportTranslate.TabIndex = 35;
-            this.btnSearchExportTranslate.Text = "Search";
-            this.btnSearchExportTranslate.UseVisualStyleBackColor = true;
-            this.btnSearchExportTranslate.Click += new System.EventHandler(this.btnSearchExportTranslate_Click);
-            // 
             // txbExportTranslate
             // 
             this.txbExportTranslate.Location = new System.Drawing.Point(94, 32);
             this.txbExportTranslate.Name = "txbExportTranslate";
-            this.txbExportTranslate.Size = new System.Drawing.Size(209, 20);
+            this.txbExportTranslate.Size = new System.Drawing.Size(278, 20);
             this.txbExportTranslate.TabIndex = 37;
             // 
-            // checkBox1
+            // cboxtbackup
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Checked = true;
-            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox1.Location = new System.Drawing.Point(208, 88);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(95, 17);
-            this.checkBox1.TabIndex = 33;
-            this.checkBox1.Text = "Bakup Original";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
-            // btn_textract
-            // 
-            this.btn_textract.Location = new System.Drawing.Point(378, 4);
-            this.btn_textract.Name = "btn_textract";
-            this.btn_textract.Size = new System.Drawing.Size(57, 23);
-            this.btn_textract.TabIndex = 51;
-            this.btn_textract.Text = "Extract";
-            this.btn_textract.UseVisualStyleBackColor = true;
-            this.btn_textract.Click += new System.EventHandler(this.btn_textract_Click);
+            this.cboxtbackup.AutoSize = true;
+            this.cboxtbackup.Checked = true;
+            this.cboxtbackup.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cboxtbackup.Location = new System.Drawing.Point(11, 86);
+            this.cboxtbackup.Name = "cboxtbackup";
+            this.cboxtbackup.Size = new System.Drawing.Size(95, 17);
+            this.cboxtbackup.TabIndex = 33;
+            this.cboxtbackup.Text = "Bakup Original";
+            this.cboxtbackup.UseVisualStyleBackColor = true;
             // 
             // BnsDatTool
             // 
@@ -540,9 +528,8 @@
         private System.Windows.Forms.Button btnSearchTranslateFile;
         private System.Windows.Forms.TextBox txbImportTranslate;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Button btnSearchExportTranslate;
         private System.Windows.Forms.TextBox txbExportTranslate;
-        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckBox cboxtbackup;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.Button btn_pack;
         private System.Windows.Forms.Button btn_Translate;

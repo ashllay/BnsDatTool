@@ -123,7 +123,7 @@ namespace BnsDatTool.lib
         }
         public void Translate(string dir, string lang, bool is64)
         {
-            Console.Write("Translating: Content...\n");
+            Console.Write("\rTranslating: Content...");
             string bin = is64 ? @"local64.dat.files\localfile64.bin" : @"local.dat.files\localfile.bin";
             FileStream fs = new FileStream(dir + bin, FileMode.Open);
             BinaryReader br = new BinaryReader(fs);
@@ -298,7 +298,7 @@ namespace BnsDatTool.lib
 
         public void DumpFAQ(string file)
         {
-            Console.Write("Dumping FAQ...\n");
+            Console.Write("\rDumping FAQ...");
             if (_indexFaqs > -1)
             {
                 BDAT_LIST blist = _content.Lists[_indexFaqs];
@@ -324,7 +324,7 @@ namespace BnsDatTool.lib
 
         public void DumpGeneral(string file)
         {
-            Console.Write("Dumping GENERAL...\n");
+            Console.Write("\rDumping GENERAL...");
             if (_indexCommons > -1)
             {
                 using (StreamWriter outfile = new StreamWriter(file))
@@ -386,7 +386,7 @@ namespace BnsDatTool.lib
 
         public void DumpCommand(string file)
         {
-            Console.Write("Dumping COMMAND...\n");
+            Console.Write("\rDumping COMMAND...");
             if (_indexCommands > -1)
             {
                 using (StreamWriter outfile = new StreamWriter(file))
