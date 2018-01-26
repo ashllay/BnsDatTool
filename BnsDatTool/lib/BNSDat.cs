@@ -197,7 +197,7 @@ namespace BnsDatTool
 
         public void Extract(string FileName, Action<int, int> processedEvent, bool is64 = false)
         {
-
+            
             FileStream fs = new FileStream(FileName, FileMode.Open);
             BinaryReader br = new BinaryReader(fs);
             string file_path;

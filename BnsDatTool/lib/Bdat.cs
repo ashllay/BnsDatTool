@@ -1229,7 +1229,7 @@ namespace BnsDatTool.lib
                 else
                 {
 #if DEBUG
-                    //Console.WriteLine("MergeTranslation: {0}", alias);
+                    Console.WriteLine("MergeTranslation: {0}", alias);
 #endif
                 }
                 XElement temp_xml = new XElement(NodeNames.Root,

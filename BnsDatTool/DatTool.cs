@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using System.Threading;
 using System.Windows.Forms;
 using BnsDatTool.lib;
 
@@ -14,17 +13,17 @@ namespace BnsDatTool
 
         OpenFileDialog OfileBin = new OpenFileDialog();
         FolderBrowserDialog OfolderBin = new FolderBrowserDialog();
-
+        //dat
         private string BackPath = "backup\\";
         private string RepackPath;
         private string OutPath;
         private string DatfileName;
         private string FulldatPath;
-
+        //bin
         private string OutPathBin;
         private string BinfileName;
         private string FullBinPath;
-
+        //--
         TextWriter _writer = null;
 
         public BackgroundWorker multiworker;
@@ -68,12 +67,13 @@ namespace BnsDatTool
         {
             if (OfileDat.ShowDialog() != DialogResult.OK)
                 return;
-            // Check if 64bit or 32bit
+            
 
             txbDatFile.Text = OfileDat.FileName;
             FulldatPath = OfileDat.FileName;
             DatfileName = OfileDat.SafeFileName;
 
+            // Check if 64bit or 32bit
             if (FulldatPath.Contains("64"))
                 DatIs64 = true;
             else
@@ -112,14 +112,20 @@ namespace BnsDatTool
         {
             if (datFile == null)
                 return;
-
-            RunWithWorker(((o, args) =>
+            try
             {
-                new BNSDat().Extract(FulldatPath, (number, of) =>
+                RunWithWorker(((o, args) =>
                 {
-                    richOut.Text = "Extracting Files: " + number + "/" + of;
-                }, DatIs64);
-            }));
+                    new BNSDat().Extract(FulldatPath, (number, of) =>
+                    {
+                        richOut.Text = "Extracting Files: " + number + "/" + of;
+                    }, DatIs64);
+                }));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         private void BntStart_Click(object sender, EventArgs e)
@@ -341,8 +347,9 @@ namespace BnsDatTool
             }
             else
             {
-                Directory.CreateDirectory(OutPathBinTranslate);
-                // Console.WriteLine("\rMerging translation...");
+                if (!Directory.Exists(OutPathBinTranslate))
+                    Directory.CreateDirectory(OutPathBinTranslate);
+
                 RunWithWorker(((o, args) =>
                 {
                     //BackgroundWorker backgroundWorker = o as BackgroundWorker;
@@ -391,7 +398,7 @@ namespace BnsDatTool
 
         private void btn_Translate_Click(object sender, EventArgs e)
         {
-            string local = DatPathTranslate;//extracetd local folder
+            string local = DatPathTranslate;//extracted local folder
             string xml = OutPathBinTranslate + (tIs64 ? @"Translation64.xml" : @"Translation.xml");//translated xml
 
             if (!File.Exists(xml))
