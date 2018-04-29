@@ -197,7 +197,7 @@ namespace BnsDatTool
 
         public void Extract(string FileName, Action<int, int> processedEvent, bool is64 = false)
         {
-            
+
             FileStream fs = new FileStream(FileName, FileMode.Open);
             BinaryReader br = new BinaryReader(fs);
             string file_path;
@@ -284,7 +284,7 @@ namespace BnsDatTool
             Console.Write("\rDone!!");
         }
 
-        public void Compress(string Folder, Action<int, int> processedEvent, bool is64 = false, int compression = 9)
+        public void Compress(string Folder, Action<int, int> processedEvent, bool is64 = false, int compression = 1)
         {
             string file_path;
             byte[] buffer_packed;
@@ -596,12 +596,14 @@ namespace BnsDatTool
                 Type = br.ReadInt32();
             }
 
-
+            KeyValuePair<string, string>[] attributes = null;
             if (Type == 1)
             {
                 node = Nodes.CreateElement("Text");
 
                 int ParameterCount = br.ReadInt32();
+                attributes = new KeyValuePair<string, string>[ParameterCount];
+
                 for (int i = 0; i < ParameterCount; i++)
                 {
                     int NameLength = br.ReadInt32();
@@ -612,7 +614,7 @@ namespace BnsDatTool
                     byte[] Value = br.ReadBytes(2 * ValueLength);
                     Xor(Value, 2 * ValueLength);
 
-                    ((XmlElement)node).SetAttribute(Encoding.Unicode.GetString(Name), Encoding.Unicode.GetString(Value));
+                    attributes[i] = new KeyValuePair<string, string>(Encoding.Unicode.GetString(Name), Encoding.Unicode.GetString(Value));
                 }
             }
 
@@ -638,7 +640,11 @@ namespace BnsDatTool
             Xor(Tag, 2 * TagLength);
             if (Type == 1)
             {
-                node = RenameNode(node, Encoding.Unicode.GetString(Tag));
+                node = Nodes.CreateElement(Encoding.Unicode.GetString(Tag));
+                foreach (var attr in attributes)
+                {
+                    ((XmlElement)node).SetAttribute(attr.Key, attr.Value);
+                }
             }
 
             int ChildCount = br.ReadInt32();
@@ -661,35 +667,6 @@ namespace BnsDatTool
             {
                 Nodes.AppendChild(node);
             }
-        }
-
-        public XmlNode RenameNode(XmlNode node, string Name)
-        {
-            if (node.NodeType == XmlNodeType.Element)
-            {
-                XmlElement oldElement = (XmlElement)node;
-                XmlElement newElement =
-                node.OwnerDocument.CreateElement(Name);
-
-                while (oldElement.HasAttributes)
-                {
-                    newElement.SetAttributeNode(oldElement.RemoveAttributeNode(oldElement.Attributes[0]));
-                }
-
-                while (oldElement.HasChildNodes)
-                {
-                    newElement.AppendChild(oldElement.FirstChild);
-                }
-
-                if (oldElement.ParentNode != null)
-                {
-                    oldElement.ParentNode.ReplaceChild(newElement, oldElement);
-                }
-
-                return newElement;
-            }
-            else
-                return node;
         }
 
         private bool WriteNode(Stream oStream, XmlNode parent = null)
@@ -801,7 +778,7 @@ namespace BnsDatTool
         int FileSize;                  // 4 byte
         byte[] Padding;                    // 64 byte
         bool Unknown;                       // 1 byte
-                                            // TODO: add to CDATA ?
+        // TODO: add to CDATA ?
         int OriginalPathLength;        // 4 byte
         byte[] OriginalPath;               // 2*OriginalPathLength bytes
 
