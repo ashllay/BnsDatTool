@@ -53,25 +53,21 @@
             this.btnOutBin = new System.Windows.Forms.Button();
             this.txbBinFolder = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.btn_textract = new System.Windows.Forms.Button();
-            this.txb_tlocal = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.btn_SearchtLocal = new System.Windows.Forms.Button();
-            this.btn_pack = new System.Windows.Forms.Button();
-            this.btn_Translate = new System.Windows.Forms.Button();
-            this.btnExportTranslate = new System.Windows.Forms.Button();
-            this.btnMergeTranslate = new System.Windows.Forms.Button();
-            this.label5 = new System.Windows.Forms.Label();
-            this.btnSearchTranslateFile = new System.Windows.Forms.Button();
-            this.txbImportTranslate = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.txbExportTranslate = new System.Windows.Forms.TextBox();
+            this.BtnSTranslate = new System.Windows.Forms.Button();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.BtnSSource = new System.Windows.Forms.Button();
+            this.BtnSTarget = new System.Windows.Forms.Button();
+            this.TxblocalTarget = new System.Windows.Forms.TextBox();
+            this.TxblocalSource = new System.Windows.Forms.TextBox();
             this.cboxtbackup = new System.Windows.Forms.CheckBox();
+            this.GboxTools = new System.Windows.Forms.GroupBox();
             this.groupBox2.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.GboxTools.SuspendLayout();
             this.SuspendLayout();
             // 
             // bntSearchDat
@@ -178,7 +174,7 @@
             this.richOut.HideSelection = false;
             this.richOut.Location = new System.Drawing.Point(6, 19);
             this.richOut.Name = "richOut";
-            this.richOut.Size = new System.Drawing.Size(441, 90);
+            this.richOut.Size = new System.Drawing.Size(455, 90);
             this.richOut.TabIndex = 21;
             this.richOut.Text = "";
             // 
@@ -187,9 +183,9 @@
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.Controls.Add(this.richOut);
-            this.groupBox2.Location = new System.Drawing.Point(9, 151);
+            this.groupBox2.Location = new System.Drawing.Point(9, 182);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(453, 115);
+            this.groupBox2.Size = new System.Drawing.Size(467, 115);
             this.groupBox2.TabIndex = 23;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Log:";
@@ -199,10 +195,10 @@
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
-            this.tabControl1.Location = new System.Drawing.Point(13, 13);
+            this.tabControl1.Location = new System.Drawing.Point(6, 15);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(451, 137);
+            this.tabControl1.Size = new System.Drawing.Size(458, 140);
             this.tabControl1.TabIndex = 24;
             // 
             // tabPage1
@@ -220,7 +216,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(443, 111);
+            this.tabPage1.Size = new System.Drawing.Size(450, 114);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Dat Files";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -238,7 +234,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(443, 111);
+            this.tabPage2.Size = new System.Drawing.Size(450, 114);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Bin Files";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -319,164 +315,111 @@
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.btn_textract);
-            this.tabPage3.Controls.Add(this.txb_tlocal);
-            this.tabPage3.Controls.Add(this.label6);
-            this.tabPage3.Controls.Add(this.btn_SearchtLocal);
-            this.tabPage3.Controls.Add(this.btn_pack);
-            this.tabPage3.Controls.Add(this.btn_Translate);
-            this.tabPage3.Controls.Add(this.btnExportTranslate);
-            this.tabPage3.Controls.Add(this.btnMergeTranslate);
-            this.tabPage3.Controls.Add(this.label5);
-            this.tabPage3.Controls.Add(this.btnSearchTranslateFile);
-            this.tabPage3.Controls.Add(this.txbImportTranslate);
-            this.tabPage3.Controls.Add(this.label4);
-            this.tabPage3.Controls.Add(this.txbExportTranslate);
+            this.tabPage3.Controls.Add(this.BtnSTranslate);
+            this.tabPage3.Controls.Add(this.label7);
+            this.tabPage3.Controls.Add(this.label3);
+            this.tabPage3.Controls.Add(this.BtnSSource);
+            this.tabPage3.Controls.Add(this.BtnSTarget);
+            this.tabPage3.Controls.Add(this.TxblocalTarget);
+            this.tabPage3.Controls.Add(this.TxblocalSource);
             this.tabPage3.Controls.Add(this.cboxtbackup);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(443, 111);
+            this.tabPage3.Size = new System.Drawing.Size(450, 114);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Translate";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // btn_textract
+            // BtnSTranslate
             // 
-            this.btn_textract.Location = new System.Drawing.Point(378, 4);
-            this.btn_textract.Name = "btn_textract";
-            this.btn_textract.Size = new System.Drawing.Size(57, 23);
-            this.btn_textract.TabIndex = 51;
-            this.btn_textract.Text = "Extract";
-            this.btn_textract.UseVisualStyleBackColor = true;
-            this.btn_textract.Click += new System.EventHandler(this.btn_textract_Click);
+            this.BtnSTranslate.Location = new System.Drawing.Point(378, 57);
+            this.BtnSTranslate.Name = "BtnSTranslate";
+            this.BtnSTranslate.Size = new System.Drawing.Size(57, 23);
+            this.BtnSTranslate.TabIndex = 58;
+            this.BtnSTranslate.Text = "Start";
+            this.BtnSTranslate.UseVisualStyleBackColor = true;
+            this.BtnSTranslate.Click += new System.EventHandler(this.BtnSTranslate_Click);
             // 
-            // txb_tlocal
+            // label7
             // 
-            this.txb_tlocal.Location = new System.Drawing.Point(94, 6);
-            this.txb_tlocal.Name = "txb_tlocal";
-            this.txb_tlocal.Size = new System.Drawing.Size(209, 20);
-            this.txb_tlocal.TabIndex = 50;
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(6, 35);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(44, 13);
+            this.label7.TabIndex = 57;
+            this.label7.Text = "Source:";
             // 
-            // label6
+            // label3
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(8, 9);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(51, 13);
-            this.label6.TabIndex = 49;
-            this.label6.Text = "local File:";
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(6, 9);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(41, 13);
+            this.label3.TabIndex = 56;
+            this.label3.Text = "Target:";
             // 
-            // btn_SearchtLocal
+            // BtnSSource
             // 
-            this.btn_SearchtLocal.Location = new System.Drawing.Point(309, 4);
-            this.btn_SearchtLocal.Name = "btn_SearchtLocal";
-            this.btn_SearchtLocal.Size = new System.Drawing.Size(63, 23);
-            this.btn_SearchtLocal.TabIndex = 48;
-            this.btn_SearchtLocal.Text = "Search";
-            this.btn_SearchtLocal.UseVisualStyleBackColor = true;
-            this.btn_SearchtLocal.Click += new System.EventHandler(this.btn_SearchtLocal_Click);
+            this.BtnSSource.Location = new System.Drawing.Point(378, 30);
+            this.BtnSSource.Name = "BtnSSource";
+            this.BtnSSource.Size = new System.Drawing.Size(57, 23);
+            this.BtnSSource.TabIndex = 55;
+            this.BtnSSource.Text = "Search";
+            this.BtnSSource.UseVisualStyleBackColor = true;
+            this.BtnSSource.Click += new System.EventHandler(this.BtnSSource_Click);
             // 
-            // btn_pack
+            // BtnSTarget
             // 
-            this.btn_pack.Location = new System.Drawing.Point(378, 82);
-            this.btn_pack.Name = "btn_pack";
-            this.btn_pack.Size = new System.Drawing.Size(57, 23);
-            this.btn_pack.TabIndex = 47;
-            this.btn_pack.Text = "Pack";
-            this.btn_pack.UseVisualStyleBackColor = true;
-            this.btn_pack.Click += new System.EventHandler(this.btn_pack_Click);
+            this.BtnSTarget.Location = new System.Drawing.Point(378, 4);
+            this.BtnSTarget.Name = "BtnSTarget";
+            this.BtnSTarget.Size = new System.Drawing.Size(57, 23);
+            this.BtnSTarget.TabIndex = 54;
+            this.BtnSTarget.Text = "Search";
+            this.BtnSTarget.UseVisualStyleBackColor = true;
+            this.BtnSTarget.Click += new System.EventHandler(this.BtnSTarget_Click);
             // 
-            // btn_Translate
+            // TxblocalTarget
             // 
-            this.btn_Translate.Location = new System.Drawing.Point(309, 82);
-            this.btn_Translate.Name = "btn_Translate";
-            this.btn_Translate.Size = new System.Drawing.Size(63, 23);
-            this.btn_Translate.TabIndex = 46;
-            this.btn_Translate.Text = "Translate";
-            this.btn_Translate.UseVisualStyleBackColor = true;
-            this.btn_Translate.Click += new System.EventHandler(this.btn_Translate_Click);
+            this.TxblocalTarget.Location = new System.Drawing.Point(56, 6);
+            this.TxblocalTarget.Name = "TxblocalTarget";
+            this.TxblocalTarget.Size = new System.Drawing.Size(316, 20);
+            this.TxblocalTarget.TabIndex = 53;
             // 
-            // btnExportTranslate
+            // TxblocalSource
             // 
-            this.btnExportTranslate.Location = new System.Drawing.Point(378, 30);
-            this.btnExportTranslate.Name = "btnExportTranslate";
-            this.btnExportTranslate.Size = new System.Drawing.Size(57, 23);
-            this.btnExportTranslate.TabIndex = 44;
-            this.btnExportTranslate.Text = "Export";
-            this.btnExportTranslate.UseVisualStyleBackColor = true;
-            this.btnExportTranslate.Click += new System.EventHandler(this.btnExportTranslate_Click);
-            // 
-            // btnMergeTranslate
-            // 
-            this.btnMergeTranslate.Location = new System.Drawing.Point(378, 56);
-            this.btnMergeTranslate.Name = "btnMergeTranslate";
-            this.btnMergeTranslate.Size = new System.Drawing.Size(57, 23);
-            this.btnMergeTranslate.TabIndex = 43;
-            this.btnMergeTranslate.Text = "Merge";
-            this.btnMergeTranslate.UseVisualStyleBackColor = true;
-            this.btnMergeTranslate.Click += new System.EventHandler(this.btnMergeTranslate_Click);
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(8, 61);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(59, 13);
-            this.label5.TabIndex = 42;
-            this.label5.Text = "Merge File:";
-            // 
-            // btnSearchTranslateFile
-            // 
-            this.btnSearchTranslateFile.Location = new System.Drawing.Point(309, 56);
-            this.btnSearchTranslateFile.Name = "btnSearchTranslateFile";
-            this.btnSearchTranslateFile.Size = new System.Drawing.Size(63, 23);
-            this.btnSearchTranslateFile.TabIndex = 40;
-            this.btnSearchTranslateFile.Text = "Search";
-            this.btnSearchTranslateFile.UseVisualStyleBackColor = true;
-            this.btnSearchTranslateFile.Click += new System.EventHandler(this.btnSearchTranslateFile_Click);
-            // 
-            // txbImportTranslate
-            // 
-            this.txbImportTranslate.Location = new System.Drawing.Point(94, 58);
-            this.txbImportTranslate.Name = "txbImportTranslate";
-            this.txbImportTranslate.Size = new System.Drawing.Size(209, 20);
-            this.txbImportTranslate.TabIndex = 41;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(8, 35);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(72, 13);
-            this.label4.TabIndex = 39;
-            this.label4.Text = "Export Folder:";
-            // 
-            // txbExportTranslate
-            // 
-            this.txbExportTranslate.Location = new System.Drawing.Point(94, 32);
-            this.txbExportTranslate.Name = "txbExportTranslate";
-            this.txbExportTranslate.Size = new System.Drawing.Size(278, 20);
-            this.txbExportTranslate.TabIndex = 37;
+            this.TxblocalSource.Location = new System.Drawing.Point(56, 32);
+            this.TxblocalSource.Name = "TxblocalSource";
+            this.TxblocalSource.Size = new System.Drawing.Size(316, 20);
+            this.TxblocalSource.TabIndex = 52;
             // 
             // cboxtbackup
             // 
             this.cboxtbackup.AutoSize = true;
             this.cboxtbackup.Checked = true;
             this.cboxtbackup.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cboxtbackup.Location = new System.Drawing.Point(11, 86);
+            this.cboxtbackup.Location = new System.Drawing.Point(56, 58);
             this.cboxtbackup.Name = "cboxtbackup";
             this.cboxtbackup.Size = new System.Drawing.Size(95, 17);
             this.cboxtbackup.TabIndex = 33;
             this.cboxtbackup.Text = "Bakup Original";
             this.cboxtbackup.UseVisualStyleBackColor = true;
             // 
+            // GboxTools
+            // 
+            this.GboxTools.Controls.Add(this.tabControl1);
+            this.GboxTools.Location = new System.Drawing.Point(9, 12);
+            this.GboxTools.Name = "GboxTools";
+            this.GboxTools.Size = new System.Drawing.Size(467, 164);
+            this.GboxTools.TabIndex = 25;
+            this.GboxTools.TabStop = false;
+            // 
             // BnsDatTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(471, 273);
-            this.Controls.Add(this.tabControl1);
+            this.ClientSize = new System.Drawing.Size(485, 304);
+            this.Controls.Add(this.GboxTools);
             this.Controls.Add(this.groupBox2);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -492,6 +435,7 @@
             this.tabPage2.PerformLayout();
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
+            this.GboxTools.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -522,21 +466,16 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button btnOutBin;
         private System.Windows.Forms.TextBox txbBinFolder;
-        private System.Windows.Forms.Button btnExportTranslate;
-        private System.Windows.Forms.Button btnMergeTranslate;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Button btnSearchTranslateFile;
-        private System.Windows.Forms.TextBox txbImportTranslate;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox txbExportTranslate;
         private System.Windows.Forms.CheckBox cboxtbackup;
         private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.Button btn_pack;
-        private System.Windows.Forms.Button btn_Translate;
-        private System.Windows.Forms.TextBox txb_tlocal;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Button btn_SearchtLocal;
-        private System.Windows.Forms.Button btn_textract;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button BtnSSource;
+        private System.Windows.Forms.Button BtnSTarget;
+        private System.Windows.Forms.TextBox TxblocalTarget;
+        private System.Windows.Forms.TextBox TxblocalSource;
+        private System.Windows.Forms.Button BtnSTranslate;
+        private System.Windows.Forms.GroupBox GboxTools;
     }
 }
 

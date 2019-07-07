@@ -52,8 +52,10 @@ namespace BnsDatTool
             CheckForIllegalCrossThreadCalls = false;
             try
             {
-                multiworker = new BackgroundWorker();
-                multiworker.WorkerReportsProgress = true;
+                multiworker = new BackgroundWorker
+                {
+                    WorkerReportsProgress = true
+                };
                 multiworker.DoWork += doWork;
                 multiworker.RunWorkerAsync();
             }
@@ -67,7 +69,7 @@ namespace BnsDatTool
         {
             if (OfileDat.ShowDialog() != DialogResult.OK)
                 return;
-            
+
 
             txbDatFile.Text = OfileDat.FileName;
             FulldatPath = OfileDat.FileName;
@@ -232,7 +234,9 @@ namespace BnsDatTool
                 {
                     richOut.Text = "Compressing Files: " + number + "/" + of;
                 }, is64, 9);
+                GboxTools.Enabled = true;
             }));
+
         }
 
         //bin
@@ -286,158 +290,315 @@ namespace BnsDatTool
         //translation
         OpenFileDialog OfileTranslate = new OpenFileDialog();
 
-        private string OutPathBinTranslate;//bin output path
-        private string FullBinPathTranslate;//bin file
-        private string FileTranslate;//translated xml file path
-        private string DatFileTranslate;//local.dat file
-        private string DatPathTranslate;//local.dat path only
-        private string DatFileNameTranslate;//local.dat file name only
-        private string DatPathExtractTranslate;
 
         public bool tIs64 = false;
-
-        private void btn_SearchtLocal_Click(object sender, EventArgs e)
+        
+        private string DatPathExtractTranslate;
+        //Source
+        string Sourcelocaldat = "";
+        string SourcelocaldatPath = "";
+        string SourcelocalFileName = "";
+        string SourceMergeFilePath = "";
+        string SourceMergeFile = "";
+        string SourceBinFile = "";
+        //Target
+        string Targetlocaldat = "";
+        string TargetlocaldatPath = "";
+        string TargetlocalFileName = "";
+        string TargetMergeFilePath = "";
+        string TargetMergeFile = "";
+        string TargetBinFile = "";
+        BackgroundWorker worker;
+        private void BtnSTarget_Click(object sender, EventArgs e)
         {
-            if (OfileDat.ShowDialog() != DialogResult.OK)
+            if (OfileTranslate.ShowDialog() != DialogResult.OK)
                 return;
             else
             {
-                if (OfileDat.FileName.Contains("64"))
+                if (OfileTranslate.FileName.Contains("64"))
                     tIs64 = true;
                 else
                     tIs64 = false;
 
-                DatFileTranslate = OfileDat.FileName;//get local file
-                txb_tlocal.Text = DatFileTranslate;//set local file to textbox
-                DatFileNameTranslate = Path.GetFileName(DatFileTranslate);
-                DatPathTranslate = Path.GetDirectoryName(DatFileTranslate) + @"\";//get local file path only
-                FullBinPathTranslate = DatFileTranslate + @".files\" + (tIs64 ? "localfile64.bin" : "localfile.bin"); //get full file path and add .files
+                Targetlocaldat = OfileTranslate.FileName;//get local file
+                TxblocalTarget.Text = Targetlocaldat;//set local file to textbox
+                TargetlocalFileName = Path.GetFileName(Targetlocaldat);
+                TargetlocaldatPath = Path.GetDirectoryName(Targetlocaldat) + @"\";//get local file path only
+                TargetBinFile = Targetlocaldat + @".files\" + (tIs64 ? "localfile64.bin" : "localfile.bin"); //get full file path and add .files
 
-                OutPathBinTranslate = DatPathTranslate + (tIs64 ? @"Translation64\" : @"Translation\");
-                txbExportTranslate.Text = OutPathBinTranslate;
+                TargetMergeFilePath = TargetlocaldatPath + (tIs64 ? @"Translation64\" : @"Translation\");
+                TargetMergeFile = TargetMergeFilePath + (tIs64 ? @"Translation64.xml" : @"Translation.xml");//original translation xml
             }
         }
 
-        private void btn_textract_Click(object sender, EventArgs e)
-        {
-            if (File.Exists(DatFileTranslate))
-            {
-                RunWithWorker(((o, args) =>
-                {
-                    new BNSDat().Extract(DatFileTranslate, (number, of) =>
-                    {
-                        richOut.Text = "Extracting Files: " + number + "/" + of;
-                    }, tIs64);
-                }));
-            }
-            else
-            {
-                MessageBox.Show("Select local file to extract.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private void btnExportTranslate_Click(object sender, EventArgs e)
-        {
-            string saveFolder = OutPathBinTranslate + (tIs64 ? @"Translation64.xml" : @"Translation.xml");//original translation xml
-            string usedfilepath = FullBinPathTranslate;//original bin file
-
-            if (!File.Exists(usedfilepath))
-            {
-                MessageBox.Show("bin file not found make sure you have unpacked local file and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            else
-            {
-                if (!Directory.Exists(OutPathBinTranslate))
-                    Directory.CreateDirectory(OutPathBinTranslate);
-
-                RunWithWorker(((o, args) =>
-                {
-                    //BackgroundWorker backgroundWorker = o as BackgroundWorker;
-                    BDat bdat = new BDat();
-                    bdat.ExportTranslate(usedfilepath, saveFolder, BXML_TYPE.BXML_PLAIN, tIs64);
-                }));
-            }
-        }
-
-        private void btnSearchTranslateFile_Click(object sender, EventArgs e)
+        private void BtnSSource_Click(object sender, EventArgs e)
         {
             if (OfileTranslate.ShowDialog() != DialogResult.OK)
                 return;
-
-            FileTranslate = OfileTranslate.FileName;
-            txbImportTranslate.Text = FileTranslate;
-        }
-
-        private void btnMergeTranslate_Click(object sender, EventArgs e)
-        {
-            string translatedpath = OutPathBinTranslate + (tIs64 ? @"Translation64.xml" : @"Translation.xml");//exported xml
-
-            if (!File.Exists(translatedpath))
-            {
-                MessageBox.Show("Original translation.xml file not found make sure you have unpacked local file and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            else if (!File.Exists(FileTranslate))
-            {
-                MessageBox.Show("Merge translation.xml file not found make sure you have selected it and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
             else
             {
-                Console.WriteLine("\rMerging translation...");
-                RunWithWorker(((o, args) =>
-                {
-                    TranslateReader translateControl_Na = new TranslateReader();
-                    translateControl_Na.Load(FileTranslate);//translated xml
-
-                    TranslateReader translateControl_Org = new TranslateReader();
-                    translateControl_Org.Load(translatedpath, true);//                
-
-                    translateControl_Org.MergeTranslation(translateControl_Na, translatedpath);
-                }));
-            }
-        }
-
-        private void btn_Translate_Click(object sender, EventArgs e)
-        {
-            string local = DatPathTranslate;//extracted local folder
-            string xml = OutPathBinTranslate + (tIs64 ? @"Translation64.xml" : @"Translation.xml");//translated xml
-
-            if (!File.Exists(xml))
-            {
-                MessageBox.Show("Original translation.xml file not found make sure you have unpacked local file and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            else if (!Directory.Exists(local))
-            {
-                MessageBox.Show("Unpacked local files not found make sure you have unpacked it and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            else
-            {
-                RunWithWorker(((o, args) =>
-                {
-                    BDat bdat = new BDat();
-                    bdat.Translate(local, xml, tIs64);
-                }));
-            }
-        }
-
-        private void btn_pack_Click(object sender, EventArgs e)
-        {
-            string usedfilepath = DatPathTranslate;
-            DatPathExtractTranslate = DatPathTranslate + (tIs64 ? @"local64.dat.files" : @"local.dat.files");
-
-            if (!Directory.Exists(usedfilepath))
-                MessageBox.Show("Repack folder not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            if (!File.Exists(usedfilepath + (tIs64 ? @"localfile64_new.bin" : @"localfile_new.bin")))
-                MessageBox.Show("_new.bin file not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            else
-            {
-                // Copy one file to a location where there is a file.
-                File.Copy(usedfilepath + (tIs64 ? "localfile64_new.bin" : "localfile_new.bin"),
-                        DatPathExtractTranslate + (tIs64 ? @"\localfile64.bin" : @"\localfile.bin"), true); // overwrite = true
-                if (cboxtbackup.Checked)
-                    BackUpManager(DatFileTranslate, usedfilepath, DatFileNameTranslate, tIs64, FILEWORKER_TYPE.TRANSLATE);
+                if (OfileTranslate.FileName.Contains("64"))
+                    tIs64 = true;
                 else
-                    CompileManager(DatPathExtractTranslate, tIs64);
+                    tIs64 = false;
+
+                Sourcelocaldat = OfileTranslate.FileName;//get local file
+                TxblocalSource.Text = Sourcelocaldat;//set local file to textbox
+                SourcelocalFileName = Path.GetFileName(Sourcelocaldat);
+                SourcelocaldatPath = Path.GetDirectoryName(Sourcelocaldat) + @"\";//get local file path only
+                SourceBinFile = Sourcelocaldat + @".files\" + (tIs64 ? "localfile64.bin" : "localfile.bin"); //get full file path and add .files
+
+                SourceMergeFilePath = SourcelocaldatPath + (tIs64 ? @"Translation64\" : @"Translation\");
+                SourceMergeFile = SourceMergeFilePath + (tIs64 ? @"Translation64.xml" : @"Translation.xml");//original translation xml
             }
+        }
+
+        private void BtnSTranslate_Click(object sender, EventArgs e)
+        {
+            GboxTools.Enabled = false;
+            if(TargetlocaldatPath == SourcelocaldatPath)
+            {
+                MessageBox.Show("You Can't Translate Using The Same Files.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                GboxTools.Enabled = true;
+                return;
+            }
+            if (File.Exists(Targetlocaldat))
+            {
+                CheckForIllegalCrossThreadCalls = false;
+                worker = new BackgroundWorker
+                {
+                    WorkerSupportsCancellation = true
+                };
+                worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(TargetExtract_Status);
+                worker.DoWork += TargetExtract;
+                worker.RunWorkerAsync();
+            }
+            else
+            {
+                MessageBox.Show("Select Targe local.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        void TargetExtract(object sender, DoWorkEventArgs e)
+        {
+            new BNSDat().Extract(Targetlocaldat, (number, of) =>
+            {
+                richOut.Text = "Extracting Files: " + number + "/" + of;
+            }, tIs64);
+        }
+        private void TargetExtract_Status(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+            if (e.Cancelled == true)
+            {
+                // workerstatus = Status.Canceled;
+            }
+            else if (e.Error != null)
+            {
+                // workerstatus = Status.Error;
+            }
+            else
+            {
+                if (File.Exists(Sourcelocaldat))
+                {
+                    // workerstatus = Status.Done;
+                    CheckForIllegalCrossThreadCalls = false;
+                    worker = new BackgroundWorker
+                    {
+                        WorkerSupportsCancellation = true
+                    };
+                    worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(SorceExtract_Status);
+                    worker.DoWork += SorceExtract;
+                    worker.RunWorkerAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Select Source local file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+        }
+        void SorceExtract(object sender, EventArgs e)
+        {
+            new BNSDat().Extract(Sourcelocaldat, (number, of) =>
+            {
+                richOut.Text = "Extracting Files: " + number + "/" + of;
+            }, tIs64);
+        }
+        private void SorceExtract_Status(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+            if (e.Cancelled == true)
+            {
+                // workerstatus = Status.Canceled;
+
+            }
+            else if (e.Error != null)
+            {
+                // workerstatus = Status.Error;
+            }
+            else
+            {
+
+                if (!Directory.Exists(TargetMergeFilePath))
+                    Directory.CreateDirectory(TargetMergeFilePath);
+                // workerstatus = Status.Done;
+                CheckForIllegalCrossThreadCalls = false;
+                worker = new BackgroundWorker
+                {
+                    WorkerSupportsCancellation = true
+                };
+                worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(TargetExport_Status);
+                worker.DoWork += TargetExport;
+                worker.RunWorkerAsync();
+            }
+        }
+        private void TargetExport(object sender, EventArgs e)
+        {
+            BDat bdat = new BDat();
+            bdat.ExportTranslate(TargetBinFile, TargetMergeFile, BXML_TYPE.BXML_PLAIN, tIs64);
+        }
+
+        private void TargetExport_Status(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+            if (e.Cancelled == true)
+            {
+                // workerstatus = Status.Canceled;
+
+            }
+            else if (e.Error != null)
+            {
+                // workerstatus = Status.Error;
+            }
+            else
+            {
+
+                if (!Directory.Exists(SourceMergeFilePath))
+                    Directory.CreateDirectory(SourceMergeFilePath);
+                // workerstatus = Status.Done;
+                CheckForIllegalCrossThreadCalls = false;
+                worker = new BackgroundWorker
+                {
+                    WorkerSupportsCancellation = true
+                };
+                worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(SourceExport_Status);
+                worker.DoWork += SourceExport;
+                worker.RunWorkerAsync();
+            }
+        }
+        void SourceExport(object sender, EventArgs e)
+        {
+            BDat bdat = new BDat();
+            bdat.ExportTranslate(SourceBinFile, SourceMergeFile, BXML_TYPE.BXML_PLAIN, tIs64);
+        }
+        private void SourceExport_Status(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+            if (e.Cancelled == true)
+            {
+                // workerstatus = Status.Canceled;
+
+            }
+            else if (e.Error != null)
+            {
+                // workerstatus = Status.Error;
+            }
+            else
+            {
+                // workerstatus = Status.Done;
+                CheckForIllegalCrossThreadCalls = false;
+                worker = new BackgroundWorker
+                {
+                    WorkerSupportsCancellation = true
+                };
+                worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(TranslateMerge_Status);
+                worker.DoWork += TranslateMerge;
+                worker.RunWorkerAsync();
+            }
+        }
+        void TranslateMerge(object sender, EventArgs e)
+        {
+            Console.WriteLine("\rMerging translation...");
+
+            TranslateReader translateControl_Na = new TranslateReader();
+            translateControl_Na.Load(SourceMergeFile);//Source xml
+
+            TranslateReader translateControl_Org = new TranslateReader();
+            translateControl_Org.Load(TargetMergeFile, true);//Target xml          
+
+            translateControl_Org.MergeTranslation(translateControl_Na, TargetMergeFile);//Target xml
+        }
+
+        private void TranslateMerge_Status(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+            if (e.Cancelled == true)
+            {
+                // workerstatus = Status.Canceled;
+
+            }
+            else if (e.Error != null)
+            {
+                // workerstatus = Status.Error;
+            }
+            else
+            {
+
+                // workerstatus = Status.Done;
+                CheckForIllegalCrossThreadCalls = false;
+                worker = new BackgroundWorker
+                {
+                    WorkerSupportsCancellation = true
+                };
+                worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(TranslateFile_Status);
+                worker.DoWork += TranslateFile;
+                worker.RunWorkerAsync();
+
+            }
+        }
+
+        void TranslateFile(object sender, EventArgs e)
+        {
+            BDat bdat = new BDat();
+            bdat.Translate(TargetlocaldatPath, TargetMergeFile, tIs64);
+        }
+
+        private void TranslateFile_Status(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+            if (e.Cancelled == true)
+            {
+                // workerstatus = Status.Canceled;
+
+            }
+            else if (e.Error != null)
+            {
+                // workerstatus = Status.Error;
+            }
+            else
+            {
+                // workerstatus = Status.Done;
+                CheckForIllegalCrossThreadCalls = false;
+                worker = new BackgroundWorker
+                {
+                    WorkerSupportsCancellation = true
+                };
+                //worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(SourceExport_Status);
+                worker.DoWork += TranslatePackFile;
+                worker.RunWorkerAsync();
+            }
+        }
+
+        void TranslatePackFile(object sender, EventArgs e)
+        {
+            DatPathExtractTranslate = TargetlocaldatPath + (tIs64 ? @"local64.dat.files" : @"local.dat.files");
+            // Copy one file to a location where there is a file.
+            File.Copy(TargetlocaldatPath + (tIs64 ? "localfile64_new.bin" : "localfile_new.bin"),
+                    DatPathExtractTranslate + (tIs64 ? @"\localfile64.bin" : @"\localfile.bin"), true); // overwrite = true
+            if (cboxtbackup.Checked)
+                BackUpManager(Targetlocaldat, TargetlocaldatPath, TargetlocalFileName, tIs64, FILEWORKER_TYPE.TRANSLATE);
+            else
+                CompileManager(DatPathExtractTranslate, tIs64);
         }
     }
 }
