@@ -36,17 +36,18 @@ namespace BnsDatTool.lib
             //UpdateTranslateState();
         }
         public void UpdateTranslateState()
-        {
-            if (string.Equals(Original, Translate, StringComparison.CurrentCulture))
-                State = TranslateState.NotTranslated;
-            else if (Translate.Any(CharExtension.IsChineseChar) ||
-                Translate.Any(CharExtension.IsJapanChar) ||
+		{
+			if (string.Equals(Original, Translate, StringComparison.CurrentCulture))
+				State = TranslateState.NotTranslated;
+			else if (Translate.Any(CharExtension.IsChineseChar) ||
+                Translate.Any(CharExtension.IsJapanChar) || 
                 Translate.Any(CharExtension.IsKoreaChar) ||
-                Translate.Any(CharExtension.IsThaiChar))
-                State = TranslateState.PartiallyTranslated;
-            else
-                State = TranslateState.Translated;
-        }
+                Translate.Any(CharExtension.IsThaiChar) ||
+                Translate.Any(CharExtension.IsVietChar))
+				State = TranslateState.PartiallyTranslated;
+			else
+				State = TranslateState.Translated;
+		}
         internal void UpdateTranslate(string newValue, bool useGtran)
         {
             Translate = newValue;

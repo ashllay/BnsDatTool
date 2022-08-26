@@ -27,7 +27,7 @@ namespace BnsDatTool.lib
         static TranslateFileDal()
         {
             schemaSet = new XmlSchemaSet();
-            schemaSet.Add("", new XmlTextReader(new StringReader(Resources.translate)));
+            schemaSet.Add("", new XmlTextReader(new StringReader("Translate")));
             schemaSet.Compile();
         }
 
@@ -102,6 +102,5 @@ namespace BnsDatTool.lib
                 texts.Save(xw);
             }
         }
-
     }
 }
