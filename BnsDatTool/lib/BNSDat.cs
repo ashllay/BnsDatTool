@@ -548,79 +548,79 @@ namespace BnsDatTool
             switch (iType)
             {
                 case BXML_TYPE.BXML_PLAIN:
-                {
-                    Signature = new byte[8] { (byte)'L', (byte)'M', (byte)'X', (byte)'B', (byte)'O', (byte)'S', (byte)'L', (byte)'B' };
-                    Version = 3;
-                    FileSize = 85;
-                    Padding = new byte[64];
-                    Unknown = true;
-                    OriginalPathLength = 0;
+                    {
+                        Signature = new byte[8] { (byte)'L', (byte)'M', (byte)'X', (byte)'B', (byte)'O', (byte)'S', (byte)'L', (byte)'B' };
+                        Version = 3;
+                        FileSize = 85;
+                        Padding = new byte[64];
+                        Unknown = true;
+                        OriginalPathLength = 0;
 
-                    // NOTE: keep whitespace text nodes (to be compliant with the whitespace TEXT_NODES in bns xml)
-                    // no we don't keep them, we remove them because it is cleaner
-                    Nodes.PreserveWhitespace = Keep_XML_WhiteSpace;
-                    Nodes.Load(iStream);
+                        // NOTE: keep whitespace text nodes (to be compliant with the whitespace TEXT_NODES in bns xml)
+                        // no we don't keep them, we remove them because it is cleaner
+                        Nodes.PreserveWhitespace = Keep_XML_WhiteSpace;
+                        Nodes.Load(iStream);
 
-                    // get original path from first comment node
-                    //fixed 18-08 
-                    XmlNode node = null;
-                    try
-                    {
-                        node = Nodes.DocumentElement.ChildNodes.OfType<XmlComment>().First();
-                    }
-                    catch
-                    {
-                    }
-                    finally
-                    {
-                        if (node != null && node.NodeType == XmlNodeType.Comment)
+                        // get original path from first comment node
+                        //fixed 18-08 
+                        XmlNode node = null;
+                        try
                         {
-                            string Text = node.InnerText;
-                            OriginalPathLength = Text.Length;
-                            OriginalPath = Encoding.Unicode.GetBytes(Text);
-                            Xor(OriginalPath, 2 * OriginalPathLength);
-                            if (Nodes.PreserveWhitespace && node.NextSibling.NodeType == XmlNodeType.Whitespace)
-                                Nodes.DocumentElement.RemoveChild(node.NextSibling);
+                            node = Nodes.DocumentElement.ChildNodes.OfType<XmlComment>().First();
                         }
-                        else
+                        catch
                         {
-                            OriginalPath = new byte[2 * OriginalPathLength];
                         }
-                    }
+                        finally
+                        {
+                            if (node != null && node.NodeType == XmlNodeType.Comment)
+                            {
+                                string Text = node.InnerText;
+                                OriginalPathLength = Text.Length;
+                                OriginalPath = Encoding.Unicode.GetBytes(Text);
+                                Xor(OriginalPath, 2 * OriginalPathLength);
+                                if (Nodes.PreserveWhitespace && node.NextSibling.NodeType == XmlNodeType.Whitespace)
+                                    Nodes.DocumentElement.RemoveChild(node.NextSibling);
+                            }
+                            else
+                            {
+                                OriginalPath = new byte[2 * OriginalPathLength];
+                            }
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case BXML_TYPE.BXML_BINARY:
-                {
-                    Signature = new byte[8];
-                    BinaryReader br = new BinaryReader(iStream);
-                    br.BaseStream.Position = 0;
-                    Signature = br.ReadBytes(8);
-
-                    Version = br.ReadInt32();
-
-                    FileSize = br.ReadInt32();
-                    Padding = br.ReadBytes(64);
-                    Unknown = br.ReadByte() == 1;
-                    OriginalPathLength = br.ReadInt32();
-                    OriginalPath = br.ReadBytes(2 * OriginalPathLength);
-                    AutoID = 1;
-                    ReadNode(iStream);
-
-                    // add original path as first comment node
-                    byte[] Path = OriginalPath;
-                    Xor(Path, 2 * OriginalPathLength);
-                    XmlComment node = Nodes.CreateComment(Encoding.Unicode.GetString(Path));
-                    Nodes.DocumentElement.PrependChild(node);
-                    XmlNode docNode = Nodes.CreateXmlDeclaration("1.0", "utf-8", null);
-                    Nodes.PrependChild(docNode);
-                    if (FileSize != iStream.Position)
                     {
-                        throw new Exception(string.Format("Filesize Mismatch, expected size was {0} while actual size was {1}.", FileSize, iStream.Position));
-                    }
+                        Signature = new byte[8];
+                        BinaryReader br = new BinaryReader(iStream);
+                        br.BaseStream.Position = 0;
+                        Signature = br.ReadBytes(8);
 
-                    break;
-                }
+                        Version = br.ReadInt32();
+
+                        FileSize = br.ReadInt32();
+                        Padding = br.ReadBytes(64);
+                        Unknown = br.ReadByte() == 1;
+                        OriginalPathLength = br.ReadInt32();
+                        OriginalPath = br.ReadBytes(2 * OriginalPathLength);
+                        AutoID = 1;
+                        ReadNode(iStream);
+
+                        // add original path as first comment node
+                        byte[] Path = OriginalPath;
+                        Xor(Path, 2 * OriginalPathLength);
+                        XmlComment node = Nodes.CreateComment(Encoding.Unicode.GetString(Path));
+                        Nodes.DocumentElement.PrependChild(node);
+                        XmlNode docNode = Nodes.CreateXmlDeclaration("1.0", "utf-8", null);
+                        Nodes.PrependChild(docNode);
+                        if (FileSize != iStream.Position)
+                        {
+                            throw new Exception(string.Format("Filesize Mismatch, expected size was {0} while actual size was {1}.", FileSize, iStream.Position));
+                        }
+
+                        break;
+                    }
             }
         }
 
@@ -632,24 +632,24 @@ namespace BnsDatTool
                     Nodes.Save(oStream);
                     break;
                 case BXML_TYPE.BXML_BINARY:
-                {
-                    BinaryWriter bw = new BinaryWriter(oStream);
-                    bw.Write(Signature);
-                    bw.Write(Version);
-                    bw.Write(FileSize);
-                    bw.Write(Padding);
-                    bw.Write(Unknown);
-                    bw.Write(OriginalPathLength);
-                    bw.Write(OriginalPath);
+                    {
+                        BinaryWriter bw = new BinaryWriter(oStream);
+                        bw.Write(Signature);
+                        bw.Write(Version);
+                        bw.Write(FileSize);
+                        bw.Write(Padding);
+                        bw.Write(Unknown);
+                        bw.Write(OriginalPathLength);
+                        bw.Write(OriginalPath);
 
-                    AutoID = 1;
-                    WriteNode(oStream);
+                        AutoID = 1;
+                        WriteNode(oStream);
 
-                    FileSize = (int)oStream.Position;
-                    oStream.Position = 12;
-                    bw.Write(FileSize);
-                    break;
-                }
+                        FileSize = (int)oStream.Position;
+                        oStream.Position = 12;
+                        bw.Write(FileSize);
+                        break;
+                    }
             }
         }
 
@@ -668,38 +668,38 @@ namespace BnsDatTool
             switch (Type)
             {
                 case 1:
-                {
-                    node = Nodes.CreateElement("Text");
-
-                    int ParameterCount = br.ReadInt32();
-                    attributes = new KeyValuePair<string, string>[ParameterCount];
-
-                    for (int i = 0; i < ParameterCount; i++)
                     {
-                        int NameLength = br.ReadInt32();
-                        byte[] Name = br.ReadBytes(2 * NameLength);
-                        Xor(Name, 2 * NameLength);
+                        node = Nodes.CreateElement("Text");
 
-                        int ValueLength = br.ReadInt32();
-                        byte[] Value = br.ReadBytes(2 * ValueLength);
-                        Xor(Value, 2 * ValueLength);
+                        int ParameterCount = br.ReadInt32();
+                        attributes = new KeyValuePair<string, string>[ParameterCount];
 
-                        attributes[i] = new KeyValuePair<string, string>(Encoding.Unicode.GetString(Name), Encoding.Unicode.GetString(Value));
+                        for (int i = 0; i < ParameterCount; i++)
+                        {
+                            int NameLength = br.ReadInt32();
+                            byte[] Name = br.ReadBytes(2 * NameLength);
+                            Xor(Name, 2 * NameLength);
+
+                            int ValueLength = br.ReadInt32();
+                            byte[] Value = br.ReadBytes(2 * ValueLength);
+                            Xor(Value, 2 * ValueLength);
+
+                            attributes[i] = new KeyValuePair<string, string>(Encoding.Unicode.GetString(Name), Encoding.Unicode.GetString(Value));
+                        }
+
+                        break;
                     }
-
-                    break;
-                }
                 case 2:
-                {
-                    node = Nodes.CreateTextNode("");
+                    {
+                        node = Nodes.CreateTextNode("");
 
-                    int TextLength = br.ReadInt32();
-                    byte[] Text = br.ReadBytes(TextLength * 2);
-                    Xor(Text, 2 * TextLength);
+                        int TextLength = br.ReadInt32();
+                        byte[] Text = br.ReadBytes(TextLength * 2);
+                        Xor(Text, 2 * TextLength);
 
-                    ((XmlText)node).Value = Encoding.Unicode.GetString(Text);
-                    break;
-                }
+                        ((XmlText)node).Value = Encoding.Unicode.GetString(Text);
+                        break;
+                    }
             }
 
             if (Type > 2)
@@ -774,45 +774,45 @@ namespace BnsDatTool
             switch (Type)
             {
                 case 1:
-                {
-                    int OffsetAttributeCount = (int)oStream.Position;
-                    int AttributeCount = 0;
-                    bw.Write(AttributeCount);
-
-                    foreach (XmlAttribute attribute in node.Attributes)
                     {
-                        string Name = attribute.Name;
-                        int NameLength = Name.Length;
-                        bw.Write(NameLength);
-                        byte[] NameBuffer = Encoding.Unicode.GetBytes(Name);
-                        Xor(NameBuffer, 2 * NameLength);
-                        bw.Write(NameBuffer);
+                        int OffsetAttributeCount = (int)oStream.Position;
+                        int AttributeCount = 0;
+                        bw.Write(AttributeCount);
 
-                        String Value = attribute.Value;
-                        int ValueLength = Value.Length;
-                        bw.Write(ValueLength);
-                        byte[] ValueBuffer = Encoding.Unicode.GetBytes(Value);
-                        Xor(ValueBuffer, 2 * ValueLength);
-                        bw.Write(ValueBuffer);
-                        AttributeCount++;
+                        foreach (XmlAttribute attribute in node.Attributes)
+                        {
+                            string Name = attribute.Name;
+                            int NameLength = Name.Length;
+                            bw.Write(NameLength);
+                            byte[] NameBuffer = Encoding.Unicode.GetBytes(Name);
+                            Xor(NameBuffer, 2 * NameLength);
+                            bw.Write(NameBuffer);
+
+                            String Value = attribute.Value;
+                            int ValueLength = Value.Length;
+                            bw.Write(ValueLength);
+                            byte[] ValueBuffer = Encoding.Unicode.GetBytes(Value);
+                            Xor(ValueBuffer, 2 * ValueLength);
+                            bw.Write(ValueBuffer);
+                            AttributeCount++;
+                        }
+
+                        int OffsetCurrent = (int)oStream.Position;
+                        oStream.Position = OffsetAttributeCount;
+                        bw.Write(AttributeCount);
+                        oStream.Position = OffsetCurrent;
+                        break;
                     }
-
-                    int OffsetCurrent = (int)oStream.Position;
-                    oStream.Position = OffsetAttributeCount;
-                    bw.Write(AttributeCount);
-                    oStream.Position = OffsetCurrent;
-                    break;
-                }
                 case 2:
-                {
-                    string Text = node.Value;
-                    int TextLength = Text.Length;
-                    bw.Write(TextLength);
-                    byte[] TextBuffer = Encoding.Unicode.GetBytes(Text);
-                    Xor(TextBuffer, 2 * TextLength);
-                    bw.Write(TextBuffer);
-                    break;
-                }
+                    {
+                        string Text = node.Value;
+                        int TextLength = Text.Length;
+                        bw.Write(TextLength);
+                        byte[] TextBuffer = Encoding.Unicode.GetBytes(Text);
+                        Xor(TextBuffer, 2 * TextLength);
+                        bw.Write(TextBuffer);
+                        break;
+                    }
             }
 
             if (Type > 2)
