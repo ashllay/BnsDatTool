@@ -51,7 +51,9 @@ namespace BnsDatTool.lib
                     return _elements.Where(u => u.Translate.Any(CharExtension.IsJapanChar)).ToList();
                 case "TH Text":
                     return _elements.Where(u => u.Translate.Any(CharExtension.IsThaiChar)).ToList();
-                default:
+				case "Viet Text":
+                    return _elements.Where(u => u.Translate.Any(CharExtension.IsVietChar)).ToList();
+				default:
                     return _elements.Where(u => u.Translate.Any(CharExtension.IsChineseChar)).ToList();
             }
 
@@ -80,7 +82,7 @@ namespace BnsDatTool.lib
                     break;
 
                 default:
-                    throw new ArgumentException(Resources.AutoIdSearchNotSupported);
+                    throw new ArgumentException("Search by autoId field not supported.");
             }
 
             if (criteria.IsRegex)

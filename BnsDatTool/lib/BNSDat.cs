@@ -43,14 +43,17 @@ namespace BnsDatTool
     public class BNSDat
     {
 
-
+        public static bool newversion = false;
         // public class BNSDat
         // {
 
-        public string AES_KEY = "bns_obt_kr_2014#";
-
-        public byte[] XOR_KEY = new byte[16] { 164, 159, 216, 179, 246, 142, 57, 194, 45, 224, 97, 117, 92, 75, 26, 7 };
-
+        // public string AES_KEY = "bns_obt_kr_2014#";
+        //public string AES_KEY = "ja#n_2@020_compl";
+        public byte[] AES_KEY = /*"HEROSOFTSOUTHERN";*/ BnsDatTool.LkAES;
+        //public static byte[] XOR_KEY = new byte[] { 164, 159, 216, 179, 246, 142, 57, 194, 45, 224, 97, 117, 92, 75, 26, 7 };
+        //public static byte[] XOR_KEY = new byte[] { 240, 200, 186, 170, 18, 31, 130, 159, 172, 24, 84, 33, 138, 58 };
+        // A4 9F D8 B3 F6 8E 39 C2 2D E0 61 75 5C 4B 1A 07
+        public byte[] XOR_KEY = BnsDatTool.LkXor;
         public string BytesToHex(byte[] bytes)
         {
             char[] c = new char[bytes.Length * 2];
@@ -80,10 +83,9 @@ namespace BnsDatTool
             byte[] tmp = new byte[sizePadded];
             buffer.CopyTo(tmp, 0);
             buffer = null;
-
             Rijndael aes = Rijndael.Create();
             aes.Mode = CipherMode.ECB;
-            ICryptoTransform decrypt = aes.CreateDecryptor(Encoding.ASCII.GetBytes(AES_KEY), new byte[16]);
+            ICryptoTransform decrypt = aes.CreateDecryptor(AES_KEY, new byte[AES_BLOCK_SIZE]);
             decrypt.TransformBlock(tmp, 0, sizePadded, output, 0);
             tmp = output;
             output = new byte[size];
@@ -165,7 +167,7 @@ namespace BnsDatTool
             Rijndael aes = Rijndael.Create();
             aes.Mode = CipherMode.ECB;
 
-            ICryptoTransform encrypt = aes.CreateEncryptor(Encoding.ASCII.GetBytes(AES_KEY), new byte[16]);
+            ICryptoTransform encrypt = aes.CreateEncryptor(AES_KEY, new byte[AES_BLOCK_SIZE]);
             encrypt.TransformBlock(temp, 0, sizePadded, output, 0);
             temp = null;
             return output;
@@ -198,47 +200,56 @@ namespace BnsDatTool
         public void Extract(string FileName, Action<int, int> processedEvent, bool is64 = false)
         {
 
-            FileStream fs = new FileStream(FileName, FileMode.Open);
-            BinaryReader br = new BinaryReader(fs);
+            FileStream fileStream = new FileStream(FileName, FileMode.Open);
+            BinaryReader binaryReader = new BinaryReader(fileStream);
             string file_path;
             byte[] buffer_packed;
             byte[] buffer_unpacked;
 
-            byte[] Signature = br.ReadBytes(8);
-            uint Version = br.ReadUInt32();
+            byte[] Signature = binaryReader.ReadBytes(8);
 
-            byte[] Unknown_001 = br.ReadBytes(5);
-            int FileDataSizePacked = is64 ? (int)br.ReadInt64() : br.ReadInt32();
-            int FileCount = is64 ? (int)br.ReadInt64() : br.ReadInt32();
-            bool IsCompressed = br.ReadByte() == 1;
-            bool IsEncrypted = br.ReadByte() == 1;
-            byte[] Unknown_002 = br.ReadBytes(62);
-            int FileTableSizePacked = is64 ? (int)br.ReadInt64() : br.ReadInt32();
-            int FileTableSizeUnpacked = is64 ? (int)br.ReadInt64() : br.ReadInt32();
+            int Version = (int)binaryReader.ReadUInt32();
 
-            buffer_packed = br.ReadBytes(FileTableSizePacked);
-            int OffsetGlobal = is64 ? (int)br.ReadInt64() : br.ReadInt32();
-            OffsetGlobal = (int)br.BaseStream.Position; // don't trust value, read current stream location.
+            byte[] Unknown_001 = binaryReader.ReadBytes(5);
+            int FileDataSizePacked = is64 ? (int)binaryReader.ReadInt64() : binaryReader.ReadInt32();
+            int FileCount = is64 ? (int)binaryReader.ReadInt64() : binaryReader.ReadInt32();
+            bool IsCompressed = binaryReader.ReadByte() == 1;
+            bool IsEncrypted = binaryReader.ReadByte() == 1;
+
+            byte[] rsa_signature;
+            if (Version == 3)
+            {
+                newversion = true;
+                rsa_signature = binaryReader.ReadBytes(128);
+            }
+            byte[] Unknown_002 = binaryReader.ReadBytes(62);
+            int FileTableSizePacked = is64 ? (int)binaryReader.ReadInt64() : binaryReader.ReadInt32();
+            int FileTableSizeUnpacked = is64 ? (int)binaryReader.ReadInt64() : binaryReader.ReadInt32();
+
+            buffer_packed = binaryReader.ReadBytes(FileTableSizePacked);
+            int OffsetGlobal = is64 ? (int)binaryReader.ReadInt64() : binaryReader.ReadInt32();
+            OffsetGlobal = (int)binaryReader.BaseStream.Position; // don't trust value, read current stream location.
 
             byte[] FileTableUnpacked = Unpack(buffer_packed, FileTableSizePacked, FileTableSizePacked, FileTableSizeUnpacked, IsEncrypted, IsCompressed);
+
             buffer_packed = null;
-            MemoryStream ms = new MemoryStream(FileTableUnpacked);
-            BinaryReader br2 = new BinaryReader(ms);
+            MemoryStream memoryStream = new MemoryStream(FileTableUnpacked);
+            BinaryReader binaryReader2 = new BinaryReader(memoryStream);
 
             for (int i = 0; i < FileCount; i++)
             {
                 BPKG_FTE FileTableEntry = new BPKG_FTE();
-                FileTableEntry.FilePathLength = is64 ? (int)br2.ReadInt64() : br2.ReadInt32();
-                FileTableEntry.FilePath = Encoding.Unicode.GetString(br2.ReadBytes(FileTableEntry.FilePathLength * 2));
-                FileTableEntry.Unknown_001 = br2.ReadByte();
-                FileTableEntry.IsCompressed = br2.ReadByte() == 1;
-                FileTableEntry.IsEncrypted = br2.ReadByte() == 1;
-                FileTableEntry.Unknown_002 = br2.ReadByte();
-                FileTableEntry.FileDataSizeUnpacked = is64 ? (int)br2.ReadInt64() : br2.ReadInt32();
-                FileTableEntry.FileDataSizeSheared = is64 ? (int)br2.ReadInt64() : br2.ReadInt32();
-                FileTableEntry.FileDataSizeStored = is64 ? (int)br2.ReadInt64() : br2.ReadInt32();
-                FileTableEntry.FileDataOffset = (is64 ? (int)br2.ReadInt64() : br2.ReadInt32()) + OffsetGlobal;
-                FileTableEntry.Padding = br2.ReadBytes(60);
+                FileTableEntry.FilePathLength = is64 ? (int)binaryReader2.ReadInt64() : binaryReader2.ReadInt32();
+                FileTableEntry.FilePath = Encoding.Unicode.GetString(binaryReader2.ReadBytes(FileTableEntry.FilePathLength * 2));
+                FileTableEntry.Unknown_001 = binaryReader2.ReadByte();
+                FileTableEntry.IsCompressed = binaryReader2.ReadByte() == 1;
+                FileTableEntry.IsEncrypted = binaryReader2.ReadByte() == 1;
+                FileTableEntry.Unknown_002 = binaryReader2.ReadByte();
+                FileTableEntry.FileDataSizeUnpacked = is64 ? (int)binaryReader2.ReadInt64() : binaryReader2.ReadInt32();
+                FileTableEntry.FileDataSizeSheared = is64 ? (int)binaryReader2.ReadInt64() : binaryReader2.ReadInt32();
+                FileTableEntry.FileDataSizeStored = is64 ? (int)binaryReader2.ReadInt64() : binaryReader2.ReadInt32();
+                FileTableEntry.FileDataOffset = (is64 ? (int)binaryReader2.ReadInt64() : binaryReader2.ReadInt32()) + OffsetGlobal;
+                FileTableEntry.Padding = binaryReader2.ReadBytes(60);
 
                 file_path = string.Format("{0}.files\\{1}", FileName, FileTableEntry.FilePath);
                 if (!Directory.Exists((new FileInfo(file_path)).DirectoryName))
@@ -246,8 +257,8 @@ namespace BnsDatTool
 
                 // Console.Write("\rExtracting Files: {0}/{1}", (i + 1), FileCount);
 
-                br.BaseStream.Position = FileTableEntry.FileDataOffset;
-                buffer_packed = br.ReadBytes(FileTableEntry.FileDataSizeStored);
+                binaryReader.BaseStream.Position = FileTableEntry.FileDataOffset;
+                buffer_packed = binaryReader.ReadBytes(FileTableEntry.FileDataSizeStored);
                 buffer_unpacked = Unpack(buffer_packed, FileTableEntry.FileDataSizeStored, FileTableEntry.FileDataSizeSheared, FileTableEntry.FileDataSizeUnpacked, FileTableEntry.IsEncrypted, FileTableEntry.IsCompressed);
                 buffer_packed = null;
                 FileTableEntry = null;
@@ -273,14 +284,14 @@ namespace BnsDatTool
                 processedEvent((i + 1), FileCount);
             }
 
-            br2.Close();
-            ms.Close();
-            br2 = null;
-            ms = null;
-            br.Close();
-            fs.Close();
-            br = null;
-            fs = null;
+            binaryReader2.Close();
+            memoryStream.Close();
+            binaryReader2 = null;
+            memoryStream = null;
+            binaryReader.Close();
+            fileStream.Close();
+            binaryReader = null;
+            fileStream = null;
             Console.Write("\rDone!!");
         }
 
@@ -386,8 +397,13 @@ namespace BnsDatTool
             BinaryWriter bw = new BinaryWriter(output);
             byte[] Signature = new byte[8] { (byte)'U', (byte)'O', (byte)'S', (byte)'E', (byte)'D', (byte)'A', (byte)'L', (byte)'B' };
             bw.Write(Signature);
-            int Version = 2;
+            int Version;
+            if (newversion)
+                Version = 3;
+            else
+                Version = 2;
             bw.Write(Version);
+
             byte[] Unknown_001 = new byte[5] { 0, 0, 0, 0, 0 };
             bw.Write(Unknown_001);
             int FileDataSizePacked = (int)mosFiles.BaseStream.Length;
@@ -407,6 +423,11 @@ namespace BnsDatTool
             bw.Write(IsCompressed);
             bool IsEncrypted = true;
             bw.Write(IsEncrypted);
+            if (newversion)
+            {
+                byte[] newbuffer = new byte[128];
+                bw.Write(newbuffer);
+            }
             byte[] Unknown_002 = new byte[62];
             bw.Write(Unknown_002);
 
@@ -456,7 +477,7 @@ namespace BnsDatTool
             Console.WriteLine("\rDone!!");
         }
 
-        private void Convert(Stream iStream, BXML_TYPE iType, Stream oStream, BXML_TYPE oType)
+        public void Convert(Stream iStream, BXML_TYPE iType, Stream oStream, BXML_TYPE oType)
         {
             if ((iType == BXML_TYPE.BXML_PLAIN && oType == BXML_TYPE.BXML_BINARY) || (iType == BXML_TYPE.BXML_BINARY && oType == BXML_TYPE.BXML_PLAIN))
             {
@@ -477,112 +498,159 @@ namespace BnsDatTool
 
         void Xor(byte[] buffer, int size)
         {
-            for (int i = 0; i < size; i++)
+            if (Version == 3)
             {
-                buffer[i] = (byte)(buffer[i] ^ XOR_KEY[i % XOR_KEY.Length]);
+                for (int i = 0; i < size; i++)
+                {
+                    buffer[i] = (byte)(buffer[i] ^ XOR_KEY[i % XOR_KEY.Length]);
+                }
             }
+            else if (Version == 4)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    for (int k = 0; k < size; k++)
+                    {
+                        buffer[k] = seedTransform((byte)(buffer[k] ^ seedTransform(XOR_KEY[k % XOR_KEY.Length])));
+                    }
+                }
+            }
+            else
+            {
+                throw new Exception($"Unsupported version: {Version}");
+            }
+        }
+
+        static byte rol(byte original, int bits)
+        {
+            return (byte)((original << bits) | (original >> 8 - bits));
+        }
+
+        static byte seedTransform(byte c)
+        {
+            byte original = c;
+            original = rol(original, 4);
+            original = (byte)(original ^ c);
+            original = (byte)(original & 0x33);
+            original = (byte)(original ^ c);
+            original = rol(original, 1);
+            byte original2 = original;
+            original = (byte)(original & 0x55);
+            original2 = rol(original2, 2);
+            original2 = (byte)(original2 & 0xAA);
+            return (byte)(original2 | original);
         }
 
         bool Keep_XML_WhiteSpace = true;
 
         public void Read(Stream iStream, BXML_TYPE iType)
         {
-            if (iType == BXML_TYPE.BXML_PLAIN)
+            switch (iType)
             {
-                Signature = new byte[8] { (byte)'L', (byte)'M', (byte)'X', (byte)'B', (byte)'O', (byte)'S', (byte)'L', (byte)'B' };
-                Version = 3;
-                FileSize = 85;
-                Padding = new byte[64];
-                Unknown = true;
-                OriginalPathLength = 0;
+                case BXML_TYPE.BXML_PLAIN:
+                {
+                    Signature = new byte[8] { (byte)'L', (byte)'M', (byte)'X', (byte)'B', (byte)'O', (byte)'S', (byte)'L', (byte)'B' };
+                    Version = 3;
+                    FileSize = 85;
+                    Padding = new byte[64];
+                    Unknown = true;
+                    OriginalPathLength = 0;
 
-                // NOTE: keep whitespace text nodes (to be compliant with the whitespace TEXT_NODES in bns xml)
-                // no we don't keep them, we remove them because it is cleaner
-                Nodes.PreserveWhitespace = Keep_XML_WhiteSpace;
-                Nodes.Load(iStream);
+                    // NOTE: keep whitespace text nodes (to be compliant with the whitespace TEXT_NODES in bns xml)
+                    // no we don't keep them, we remove them because it is cleaner
+                    Nodes.PreserveWhitespace = Keep_XML_WhiteSpace;
+                    Nodes.Load(iStream);
 
-                // get original path from first comment node
-                //fixed 18-08 
-                XmlNode node = null;
-                try
-                {
-                    node = Nodes.DocumentElement.ChildNodes.OfType<XmlComment>().First();
-                }
-                catch
-                {
-                }
-                finally
-                {
-                    if (node != null && node.NodeType == XmlNodeType.Comment)
+                    // get original path from first comment node
+                    //fixed 18-08 
+                    XmlNode node = null;
+                    try
                     {
-                        string Text = node.InnerText;
-                        OriginalPathLength = Text.Length;
-                        OriginalPath = Encoding.Unicode.GetBytes(Text);
-                        Xor(OriginalPath, 2 * OriginalPathLength);
-                        if (Nodes.PreserveWhitespace && node.NextSibling.NodeType == XmlNodeType.Whitespace)
-                            Nodes.DocumentElement.RemoveChild(node.NextSibling);
+                        node = Nodes.DocumentElement.ChildNodes.OfType<XmlComment>().First();
                     }
-                    else
+                    catch
                     {
-                        OriginalPath = new byte[2 * OriginalPathLength];
                     }
+                    finally
+                    {
+                        if (node != null && node.NodeType == XmlNodeType.Comment)
+                        {
+                            string Text = node.InnerText;
+                            OriginalPathLength = Text.Length;
+                            OriginalPath = Encoding.Unicode.GetBytes(Text);
+                            Xor(OriginalPath, 2 * OriginalPathLength);
+                            if (Nodes.PreserveWhitespace && node.NextSibling.NodeType == XmlNodeType.Whitespace)
+                                Nodes.DocumentElement.RemoveChild(node.NextSibling);
+                        }
+                        else
+                        {
+                            OriginalPath = new byte[2 * OriginalPathLength];
+                        }
+                    }
+
+                    break;
                 }
-            }
-
-            if (iType == BXML_TYPE.BXML_BINARY)
-            {
-                Signature = new byte[8];
-                BinaryReader br = new BinaryReader(iStream);
-                br.BaseStream.Position = 0;
-                Signature = br.ReadBytes(8);
-                Version = br.ReadInt32();
-                FileSize = br.ReadInt32();
-                Padding = br.ReadBytes(64);
-                Unknown = br.ReadByte() == 1;
-                OriginalPathLength = br.ReadInt32();
-                OriginalPath = br.ReadBytes(2 * OriginalPathLength);
-                AutoID = 1;
-                ReadNode(iStream);
-
-                // add original path as first comment node
-                byte[] Path = OriginalPath;
-                Xor(Path, 2 * OriginalPathLength);
-                XmlComment node = Nodes.CreateComment(Encoding.Unicode.GetString(Path));
-                Nodes.DocumentElement.PrependChild(node);
-                XmlNode docNode = Nodes.CreateXmlDeclaration("1.0", "utf-8", null);
-                Nodes.PrependChild(docNode);
-                if (FileSize != iStream.Position)
+                case BXML_TYPE.BXML_BINARY:
                 {
-                    throw new Exception(String.Format("Filesize Mismatch, expected size was {0} while actual size was {1}.", FileSize, iStream.Position));
+                    Signature = new byte[8];
+                    BinaryReader br = new BinaryReader(iStream);
+                    br.BaseStream.Position = 0;
+                    Signature = br.ReadBytes(8);
+
+                    Version = br.ReadInt32();
+
+                    FileSize = br.ReadInt32();
+                    Padding = br.ReadBytes(64);
+                    Unknown = br.ReadByte() == 1;
+                    OriginalPathLength = br.ReadInt32();
+                    OriginalPath = br.ReadBytes(2 * OriginalPathLength);
+                    AutoID = 1;
+                    ReadNode(iStream);
+
+                    // add original path as first comment node
+                    byte[] Path = OriginalPath;
+                    Xor(Path, 2 * OriginalPathLength);
+                    XmlComment node = Nodes.CreateComment(Encoding.Unicode.GetString(Path));
+                    Nodes.DocumentElement.PrependChild(node);
+                    XmlNode docNode = Nodes.CreateXmlDeclaration("1.0", "utf-8", null);
+                    Nodes.PrependChild(docNode);
+                    if (FileSize != iStream.Position)
+                    {
+                        throw new Exception(string.Format("Filesize Mismatch, expected size was {0} while actual size was {1}.", FileSize, iStream.Position));
+                    }
+
+                    break;
                 }
             }
         }
 
         public void Write(Stream oStream, BXML_TYPE oType)
         {
-            if (oType == BXML_TYPE.BXML_PLAIN)
+            switch (oType)
             {
-                Nodes.Save(oStream);
+                case BXML_TYPE.BXML_PLAIN:
+                    Nodes.Save(oStream);
+                    break;
+                case BXML_TYPE.BXML_BINARY:
+                {
+                    BinaryWriter bw = new BinaryWriter(oStream);
+                    bw.Write(Signature);
+                    bw.Write(Version);
+                    bw.Write(FileSize);
+                    bw.Write(Padding);
+                    bw.Write(Unknown);
+                    bw.Write(OriginalPathLength);
+                    bw.Write(OriginalPath);
+
+                    AutoID = 1;
+                    WriteNode(oStream);
+
+                    FileSize = (int)oStream.Position;
+                    oStream.Position = 12;
+                    bw.Write(FileSize);
+                    break;
+                }
             }
-            if (oType == BXML_TYPE.BXML_BINARY)
-            {
-                BinaryWriter bw = new BinaryWriter(oStream);
-                bw.Write(Signature);
-                bw.Write(Version);
-                bw.Write(FileSize);
-                bw.Write(Padding);
-                bw.Write(Unknown);
-                bw.Write(OriginalPathLength);
-                bw.Write(OriginalPath);
-
-                AutoID = 1;
-                WriteNode(oStream);
-
-                FileSize = (int)oStream.Position;
-                oStream.Position = 12;
-                bw.Write(FileSize);
-            }
-
         }
 
         private void ReadNode(Stream iStream, XmlNode parent = null)
@@ -597,36 +665,41 @@ namespace BnsDatTool
             }
 
             KeyValuePair<string, string>[] attributes = null;
-            if (Type == 1)
+            switch (Type)
             {
-                node = Nodes.CreateElement("Text");
-
-                int ParameterCount = br.ReadInt32();
-                attributes = new KeyValuePair<string, string>[ParameterCount];
-
-                for (int i = 0; i < ParameterCount; i++)
+                case 1:
                 {
-                    int NameLength = br.ReadInt32();
-                    byte[] Name = br.ReadBytes(2 * NameLength);
-                    Xor(Name, 2 * NameLength);
+                    node = Nodes.CreateElement("Text");
 
-                    int ValueLength = br.ReadInt32();
-                    byte[] Value = br.ReadBytes(2 * ValueLength);
-                    Xor(Value, 2 * ValueLength);
+                    int ParameterCount = br.ReadInt32();
+                    attributes = new KeyValuePair<string, string>[ParameterCount];
 
-                    attributes[i] = new KeyValuePair<string, string>(Encoding.Unicode.GetString(Name), Encoding.Unicode.GetString(Value));
+                    for (int i = 0; i < ParameterCount; i++)
+                    {
+                        int NameLength = br.ReadInt32();
+                        byte[] Name = br.ReadBytes(2 * NameLength);
+                        Xor(Name, 2 * NameLength);
+
+                        int ValueLength = br.ReadInt32();
+                        byte[] Value = br.ReadBytes(2 * ValueLength);
+                        Xor(Value, 2 * ValueLength);
+
+                        attributes[i] = new KeyValuePair<string, string>(Encoding.Unicode.GetString(Name), Encoding.Unicode.GetString(Value));
+                    }
+
+                    break;
                 }
-            }
+                case 2:
+                {
+                    node = Nodes.CreateTextNode("");
 
-            if (Type == 2)
-            {
-                node = Nodes.CreateTextNode("");
+                    int TextLength = br.ReadInt32();
+                    byte[] Text = br.ReadBytes(TextLength * 2);
+                    Xor(Text, 2 * TextLength);
 
-                int TextLength = br.ReadInt32();
-                byte[] Text = br.ReadBytes(TextLength * 2);
-                Xor(Text, 2 * TextLength);
-
-                ((XmlText)node).Value = Encoding.Unicode.GetString(Text);
+                    ((XmlText)node).Value = Encoding.Unicode.GetString(Text);
+                    break;
+                }
             }
 
             if (Type > 2)
@@ -678,18 +751,19 @@ namespace BnsDatTool
             if (parent != null)
             {
                 node = parent;
-                if (node.NodeType == XmlNodeType.Element)
+                switch (node.NodeType)
                 {
-                    Type = 1;
+                    case XmlNodeType.Element:
+                        Type = 1;
+                        break;
+                    case XmlNodeType.Text:
+                    case XmlNodeType.Whitespace:
+                        Type = 2;
+                        break;
+                    case XmlNodeType.Comment:
+                        return false;
                 }
-                if (node.NodeType == XmlNodeType.Text || node.NodeType == XmlNodeType.Whitespace)
-                {
-                    Type = 2;
-                }
-                if (node.NodeType == XmlNodeType.Comment)
-                {
-                    return false;
-                }
+
                 bw.Write(Type);
             }
             else
@@ -697,50 +771,53 @@ namespace BnsDatTool
                 node = Nodes.DocumentElement;
             }
 
-            if (Type == 1)
+            switch (Type)
             {
-                int OffsetAttributeCount = (int)oStream.Position;
-                int AttributeCount = 0;
-                bw.Write(AttributeCount);
-
-                foreach (XmlAttribute attribute in node.Attributes)
+                case 1:
                 {
-                    string Name = attribute.Name;
-                    int NameLength = Name.Length;
-                    bw.Write(NameLength);
-                    byte[] NameBuffer = Encoding.Unicode.GetBytes(Name);
-                    Xor(NameBuffer, 2 * NameLength);
-                    bw.Write(NameBuffer);
+                    int OffsetAttributeCount = (int)oStream.Position;
+                    int AttributeCount = 0;
+                    bw.Write(AttributeCount);
 
-                    String Value = attribute.Value;
-                    int ValueLength = Value.Length;
-                    bw.Write(ValueLength);
-                    byte[] ValueBuffer = Encoding.Unicode.GetBytes(Value);
-                    Xor(ValueBuffer, 2 * ValueLength);
-                    bw.Write(ValueBuffer);
-                    AttributeCount++;
+                    foreach (XmlAttribute attribute in node.Attributes)
+                    {
+                        string Name = attribute.Name;
+                        int NameLength = Name.Length;
+                        bw.Write(NameLength);
+                        byte[] NameBuffer = Encoding.Unicode.GetBytes(Name);
+                        Xor(NameBuffer, 2 * NameLength);
+                        bw.Write(NameBuffer);
+
+                        String Value = attribute.Value;
+                        int ValueLength = Value.Length;
+                        bw.Write(ValueLength);
+                        byte[] ValueBuffer = Encoding.Unicode.GetBytes(Value);
+                        Xor(ValueBuffer, 2 * ValueLength);
+                        bw.Write(ValueBuffer);
+                        AttributeCount++;
+                    }
+
+                    int OffsetCurrent = (int)oStream.Position;
+                    oStream.Position = OffsetAttributeCount;
+                    bw.Write(AttributeCount);
+                    oStream.Position = OffsetCurrent;
+                    break;
                 }
-
-                int OffsetCurrent = (int)oStream.Position;
-                oStream.Position = OffsetAttributeCount;
-                bw.Write(AttributeCount);
-                oStream.Position = OffsetCurrent;
-            }
-
-            if (Type == 2)
-            {
-                string Text = node.Value;
-                int TextLength = Text.Length;
-                bw.Write(TextLength);
-                byte[] TextBuffer = Encoding.Unicode.GetBytes(Text);
-                Xor(TextBuffer, 2 * TextLength);
-                bw.Write(TextBuffer);
-
+                case 2:
+                {
+                    string Text = node.Value;
+                    int TextLength = Text.Length;
+                    bw.Write(TextLength);
+                    byte[] TextBuffer = Encoding.Unicode.GetBytes(Text);
+                    Xor(TextBuffer, 2 * TextLength);
+                    bw.Write(TextBuffer);
+                    break;
+                }
             }
 
             if (Type > 2)
             {
-                throw new Exception(String.Format("ERROR: XML NODE TYPE [{0}] UNKNOWN", node.NodeType.ToString()));
+                throw new Exception(string.Format("ERROR: XML NODE TYPE [{0}] UNKNOWN", node.NodeType.ToString()));
             }
 
             bool Closed = true;
