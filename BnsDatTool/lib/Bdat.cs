@@ -47,7 +47,6 @@ namespace BnsDatTool
             br.Close();
         }
 
-
         public void ExportTranslate(string FileName, string saveFolder, BXML_TYPE format, bool is64)
         {
             Console.Write("\rExporting Translation XML...");
